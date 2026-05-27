@@ -1,0 +1,22 @@
+# Virtual environment
+venv/
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Qdrant local storage
+backend/data/qdrant_local/
+
+# Extracted files
+backend/data/extracted_images/
+
+# Uploaded PDFs (optional)
+backend/data/input_pdfs/
+
+# OS files
+.DS_Store
+Thumbs.db
