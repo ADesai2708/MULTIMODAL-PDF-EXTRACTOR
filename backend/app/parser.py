@@ -1,74 +1,294 @@
 import os
 import glob
+import json
+import fitz
+
 from llama_parse import LlamaParse
 from app.config import settings
 
+
 def init_parser() -> LlamaParse:
     """
-    Initializes LlamaParse with multi-modal capabilities enabled.
-    This tells the cloud parser to extract both text layout and images.
+    Initialize LlamaParse with multimodal support.
     """
+
     return LlamaParse(
+
         api_key=settings.LLAMA_CLOUD_API_KEY,
-        result_type="markdown",  # Preserves tables as markdown tables
-        extract_charts=True,     # Specifically look for complex technical charts
+
+        result_type="markdown",
+
+        extract_charts=True,
+
         verbose=True
     )
 
+
+def extract_images_local(
+    pdf_path,
+    output_dir
+):
+    """
+    Fallback local image extraction using PyMuPDF.
+    """
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    doc = fitz.open(pdf_path)
+
+    saved_images = []
+
+    print("\n🖼️ Running fallback image extraction...")
+
+    for page_num in range(len(doc)):
+
+        page = doc[page_num]
+
+        images = page.get_images(full=True)
+
+        print(
+            f"📄 Page {page_num+1}: "
+            f"{len(images)} image(s)"
+        )
+
+        for idx, img in enumerate(images):
+
+            xref = img[0]
+
+            base_image = doc.extract_image(xref)
+
+            image_bytes = base_image["image"]
+
+            image_ext = base_image["ext"]
+
+            filename = (
+                f"page_{page_num+1}_img_{idx+1}.{image_ext}"
+            )
+
+            image_path = os.path.join(
+                output_dir,
+                filename
+            )
+
+            with open(image_path, "wb") as f:
+                f.write(image_bytes)
+
+            saved_images.append({
+
+                "image_name": filename,
+
+                "image_path": image_path
+            })
+
+            print(
+                f"✅ Saved: {filename}"
+            )
+
+    return saved_images
+
+
 def parse_pdf_document(pdf_path: str):
+
     """
-    Parses a single target PDF, extracting clean markdown text and images.
+    Parse PDF into markdown + extracted images.
     """
+
     if not os.path.exists(pdf_path):
-        raise FileNotFoundError(f"Target PDF file not found at: {pdf_path}")
-        
-    print(f"\n🚀 Ingesting: {os.path.basename(pdf_path)}")
+
+        raise FileNotFoundError(
+            f"Target PDF file not found at: {pdf_path}"
+        )
+
+    print(
+        f"\n🚀 Ingesting: "
+        f"{os.path.basename(pdf_path)}"
+    )
+
     parser = init_parser()
-    
-    # 1. Run the layout-aware parser over the document
-    # LlamaParse handles image extraction asynchronously under the hood
+
     images_output_dir = settings.OUTPUT_DIR
-    os.makedirs(images_output_dir, exist_ok=True)
-    
-    # get_json gets comprehensive layout dictionary maps containing image bytes
-    print("⏳ Parsing layout structure and extracting images via LlamaParse...")
-    json_results = parser.get_json_result(pdf_path)
-    
-    # Extract the markdown string text data
-    print("⏳ Rendering layout markdown chunks...")
-    markdown_results = parser.load_data(pdf_path)
-    full_markdown_text = "\n\n".join([doc.text for doc in markdown_results])
-    
-    # 2. Download and write out the extracted images to our staging directory
-    # LlamaParse embeds visual assets into the JSON results dictionary metadata
-    images_downloaded = parser.get_images(json_results, download_path=images_output_dir)
-    
-    print("✅ Ingestion Complete!")
-    print(f"   • Extracted Chunks: {len(markdown_results)} pages/sections parsed.")
-    print(f"   • Extracted Figures/Images: {len(images_downloaded)} files written to '{images_output_dir}'")
-    
+
+    os.makedirs(
+        images_output_dir,
+        exist_ok=True
+    )
+
+    print(
+        "\n⏳ Parsing layout + visuals..."
+    )
+
+    json_results = parser.get_json_result(
+        pdf_path
+    )
+
+    print(
+        "\n⏳ Rendering markdown..."
+    )
+
+    markdown_results = parser.load_data(
+        pdf_path
+    )
+
+    full_markdown_text = "\n\n".join(
+        [
+            doc.text
+            for doc in markdown_results
+        ]
+    )
+
+    # Save raw debug JSON
+    try:
+
+        with open(
+            "debug_llamaparse.json",
+            "w",
+            encoding="utf-8"
+        ) as f:
+
+            json.dump(
+                json_results,
+                f,
+                indent=2
+            )
+
+        print(
+            "\n✅ Saved debug JSON"
+        )
+
+    except Exception as e:
+
+        print(
+            f"\n⚠️ Failed saving debug JSON: {e}"
+        )
+
+    # Try LlamaParse image extraction
+    try:
+
+        print(
+            "\n🖼️ Extracting images via LlamaParse..."
+        )
+
+        images_downloaded = parser.get_images(
+
+            json_results,
+
+            download_path=images_output_dir
+        )
+
+        print(
+            f"✅ LlamaParse extracted "
+            f"{len(images_downloaded)} image(s)"
+        )
+
+    except Exception as e:
+
+        print(
+            f"\n❌ LlamaParse image extraction failed: {e}"
+        )
+
+        images_downloaded = []
+
+    # Fallback extraction
+    if not images_downloaded:
+
+        print(
+            "\n⚠️ No images detected via LlamaParse"
+        )
+
+        print(
+            "🔄 Switching to PyMuPDF fallback..."
+        )
+
+        images_downloaded = extract_images_local(
+
+            pdf_path,
+
+            images_output_dir
+        )
+
+    print("\n================================================")
+
+    print("✅ INGESTION COMPLETE")
+
+    print("================================================")
+
+    print(
+        f"📄 Parsed sections: "
+        f"{len(markdown_results)}"
+    )
+
+    print(
+        f"🖼️ Extracted images: "
+        f"{len(images_downloaded)}"
+    )
+
+    print(
+        f"📂 Output directory: "
+        f"{images_output_dir}"
+    )
+
     return {
-        "markdown_text": full_markdown_text,
-        "raw_chunks": markdown_results,
-        "extracted_images": images_downloaded
+
+        "markdown_text":
+        full_markdown_text,
+
+        "raw_chunks":
+        markdown_results,
+
+        "extracted_images":
+        images_downloaded
     }
 
+
 if __name__ == "__main__":
-    # Test script standalone verification loop
-    print("Testing parser routing...")
-    pdf_files = glob.glob(os.path.join(settings.INPUT_DIR, "*.pdf"))
-    
+
+    print(
+        "\n🔍 Testing parser..."
+    )
+
+    pdf_files = glob.glob(
+
+        os.path.join(
+            settings.INPUT_DIR,
+            "*.pdf"
+        )
+    )
+
     if not pdf_files:
-        print(f"\n⚠️  No PDFs found inside '{settings.INPUT_DIR}'.")
-        print("👉 Drop a sample patent or research paper PDF into that folder to test the extraction script!")
+
+        print(
+            f"\n⚠️ No PDFs found inside "
+            f"'{settings.INPUT_DIR}'"
+        )
+
     else:
-        # Run a test extraction on the first PDF it matches
+
         sample_target = pdf_files[0]
+
         try:
-            results = parse_pdf_document(sample_target)
-            print("\nSnippet of extracted Markdown content looks like this:")
-            print("-" * 50)
-            print(results["markdown_text"][:600] + "\n... [truncated] ...")
-            print("-" * 50)
+
+            results = parse_pdf_document(
+                sample_target
+            )
+
+            print(
+                "\n📘 Markdown Preview:\n"
+            )
+
+            print("-" * 60)
+
+            print(
+                results[
+                    "markdown_text"
+                ][:1000]
+            )
+
+            print("\n...[truncated]...")
+
+            print("-" * 60)
+
         except Exception as e:
-            print(f"\n❌ Error encountered during document extraction: {e}")
+
+            print(
+                f"\n❌ Parsing failed: {e}"
+            )

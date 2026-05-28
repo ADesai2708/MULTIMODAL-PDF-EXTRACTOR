@@ -1,0 +1,1421 @@
+[
+  {
+    "pages": [
+      {
+        "page": 1,
+        "text": "Automated Contrast Enhancement of Mammograms\n        for Early Cancer Detection.\n\n                 Abstract\u2014For achieving earlier detection of breast cancer     \u2022 A Set of high dimensional handcrafted features: composed\n    (resulting in higher clinical utility), a complete automated anal-         of 15 values describing shape (8), intensity (3) and GLCM\n    ysis of mammographic images is necessary. In this work, we                 texture (4)\n    propose a general DIP pipeline for breast cancer classification                     \u2022 A Classification framework based on the above: tested\n    based on the CBIS-DDSM database. It is comprised of two                    against a Random Forest using 5-fold cross validation with\n    stages: preprocessing (using bilateral filtering for noise reduction,\n    CLAHE on both pass-directions, and an adaptive thresholding                permutation-based feature importance.\n    based method to segment the lesion) and a Random Forest                            \u2022 An End-to-end inference stage: providing a 91.33%    -\n    classifier. The classification is achieved with 15 hand-crafted            tainty that an input image shows a malignant lesion.\n    features separated in shape, intensity and textures (GLCM).                     \u2022 A Dual-mode inference system: fully capable of  n   p   -\n    Good classification performance is achieved when the data (train\n    and test images are equally balanced and there are 1000 images             ing CBIS-DDSM with a 5,000-sample synthetic falling back.\n    per class) is analyzed by 5-fold stratified cross-validation. We\n    want to make the system explainable and thus, we provide the                                II. RELATED WORK\n    entire test-set, the ROC curve, and the permutation importance\n    in order to provide good confidence of the classification results         A. Standardizing with the CBIS-DDSM Standard\n    on an image.                                                                         All current CAD systems utilize the CBIS-DDSM dataset,\n                                   Index Terms\u2014CBIS-DDSM,Bilateral Filter-     which is an enhanced version of the original DDSM database.\n    ing,CLAHE,Adaptive Thresholding,Random Forest\n    Classifier,GLCM,ROC Curve.                                                 It contains everything from original DICOM files to p  f  -\n                                                                               sionally drawn ROI boxes in a comprehensive environment\n                                                                               to train classifiers against and measure against as the world\u2019s\n                    I. INTRODUCTION                                            standard of care.\n\n            Breast cancer is the most frequent type of cancer in women\nworldwide, accounting for almost 25% of all cancers in women\nand a smaller proportion of cancers overall. Despite     -\nous treatment methods, high mortality rates correlate highly\nwith late-stage detection. Population-based screening using\nsystematic mammographic views has significantly lowered the\nmortality rates by 15%- 30% with the assistance of an image\nquality based evaluation system. The computational challenge\npresented by digital mammograms is due to the poor contrast\nand similarities between pathological characteristics (masses,\ncalcifications, Architectural Distortions) and complex  l ndu-\nlar tissue. This has produced two main challenges for  u  -\nmatic interpretation: (1) the inherently low contrast between\nthe lesions and the surrounding tissue and (2) high variability\nin morphology and texture between different individuals. Thus,\neffective preprocessing and accurate segmentation are crucial\nsteps prior to any feature extraction and detection algorithms.\nWhile current research is predominantly using deep l   n-\ning, traditional handcrafted feature-based approaches have\nremained an important and computationally feasible solution;\ntheir ensemble application with classifiers like Random Forest\nensures clinical explainability along with competitive detection\nperformance. In this paper we present:\n         \u2022 A Multi-stage DIP Pipeline: incorporating bilateral d n   -\ning, double pass CLAHE, adaptive Gaussian thresholding, and\nmorphological closing/opening stages for lesion isolation.\nB. Sophisticated Contrast Strategies\nLow contrast imaging is a serious problem in m mm    -\nphy. Though CLAHE is the most common image enhancement\nutilized, we take the ideas of Pizer and Reza further, u  l z-\ning a double-pass technique of enhancement that essentially\nmultiplies the feature visibility, so that any masses\u2019 irregular\nmargins are distinct enough for the segmentation stage to\ndetect.\n\nC. Segmentation\n\n       We do not rely on global thresholds, which perform poorly\non dense images, but rather use an adaptive Gaussian  h   h-\nolding which allows the threshold values to be determined on\na per-image basis. We then run morphological post-processing\non the resultant masks to \u201dclean up\u201d the binary m    -\nremoving any gaps in masses and deleting the small noise\nclusters that result from image analysis.\nD. Interpretable Feature Engineering\n\n     Though deep learning is effective, it is not as transparent\nashandcraftedfeatures (i.e. Shape eccentricity, GLCM    -\ntures). We used handcrafted features in the Random Forest  l-\ngorithm which allows for robust decision making with features\nwhose individual importance can be mathematically proven\nand clinically interpreted.",
+        "md": "Automated Contrast Enhancement of Mammograms for Early Cancer Detection\n\n# Abstract\n\nFor achieving earlier detection of breast cancer (resulting in higher clinical utility), a complete automated analysis of mammographic images is necessary. In this work, we propose a general DIP pipeline for breast cancer classification based on the CBIS-DDSM database. It is comprised of two stages: preprocessing (using bilateral filtering for noise reduction, CLAHE on both pass-directions, and an adaptive thresholding based method to segment the lesion) and a Random Forest classifier. The classification is achieved with 15 hand-crafted features separated in shape, intensity and textures (GLCM). Good classification performance is achieved when the data (train and test images are equally balanced and there are 1000 images per class) is analyzed by 5-fold stratified cross-validation. We want to make the system explainable and thus, we provide the entire test-set, the ROC curve, and the permutation importance in order to provide good confidence of the classification results on an image.\n\n# Index Terms\n\nCBIS-DDSM, Bilateral Filtering, CLAHE, Adaptive Thresholding, Random Forest Classifier, GLCM, ROC Curve.\n\n# I. INTRODUCTION\n\nBreast cancer is the most frequent type of cancer in women worldwide, accounting for almost 25% of all cancers in women and a smaller proportion of cancers overall. Despite various treatment methods, high mortality rates correlate highly with late-stage detection. Population-based screening using systematic mammographic views has significantly lowered the mortality rates by 15%-30% with the assistance of an image quality based evaluation system. The computational challenge presented by digital mammograms is due to the poor contrast and similarities between pathological characteristics (masses, calcifications, Architectural Distortions) and complex glandular tissue. This has produced two main challenges for automatic interpretation: (1) the inherently low contrast between the lesions and the surrounding tissue and (2) high variability in morphology and texture between different individuals. Thus, effective preprocessing and accurate segmentation are crucial steps prior to any feature extraction and detection algorithms. While current research is predominantly using deep learning, traditional handcrafted feature-based approaches have remained an important and computationally feasible solution; their ensemble application with classifiers like Random Forest ensures clinical explainability along with competitive detection performance. In this paper we present:\n\n- A Multi-stage DIP Pipeline: incorporating bilateral filtering, double pass CLAHE, adaptive Gaussian thresholding, and morphological closing/opening stages for lesion isolation.\n\n# II. RELATED WORK\n\n# A. Standardizing with the CBIS-DDSM Standard\n\nAll current CAD systems utilize the CBIS-DDSM dataset, which is an enhanced version of the original DDSM database. It contains everything from original DICOM files to professionally drawn ROI boxes in a comprehensive environment to train classifiers against and measure against as the world\u2019s standard of care.\n\n# B. Sophisticated Contrast Strategies\n\nLow contrast imaging is a serious problem in mammography. Though CLAHE is the most common image enhancement utilized, we take the ideas of Pizer and Reza further, utilizing a double-pass technique of enhancement that essentially multiplies the feature visibility, so that any masses\u2019 irregular margins are distinct enough for the segmentation stage to detect.\n\n# C. Segmentation\n\nWe do not rely on global thresholds, which perform poorly on dense images, but rather use an adaptive Gaussian thresholding which allows the threshold values to be determined on a per-image basis. We then run morphological post-processing on the resultant masks to \u201cclean up\u201d the binary masks, removing any gaps in masses and deleting the small noise clusters that result from image analysis.\n\n# D. Interpretable Feature Engineering\n\nThough deep learning is effective, it is not as transparent as handcrafted features (i.e. Shape eccentricity, GLCM features). We used handcrafted features in the Random Forest algorithm which allows for robust decision making with features whose individual importance can be mathematically proven and clinically interpreted.\n\n",
+        "images": [
+          {
+            "name": "page_1.jpg",
+            "height": 792,
+            "width": 612,
+            "x": 0,
+            "y": 0,
+            "original_width": 1236,
+            "original_height": 1600,
+            "rotation": 0,
+            "type": "full_page_screenshot"
+          }
+        ],
+        "charts": [],
+        "items": [
+          {
+            "type": "text",
+            "md": "Automated Contrast Enhancement of Mammograms for Early Cancer Detection",
+            "value": "Automated Contrast Enhancement of Mammograms for Early Cancer Detection",
+            "bBox": {
+              "x": 50.86,
+              "y": 54.9,
+              "w": 510.29,
+              "h": 21.52,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# Abstract",
+            "value": "Abstract",
+            "lvl": 1
+          },
+          {
+            "type": "text",
+            "md": "For achieving earlier detection of breast cancer (resulting in higher clinical utility), a complete automated analysis of mammographic images is necessary. In this work, we propose a general DIP pipeline for breast cancer classification based on the CBIS-DDSM database. It is comprised of two stages: preprocessing (using bilateral filtering for noise reduction, CLAHE on both pass-directions, and an adaptive thresholding based method to segment the lesion) and a Random Forest classifier. The classification is achieved with 15 hand-crafted features separated in shape, intensity and textures (GLCM). Good classification performance is achieved when the data (train and test images are equally balanced and there are 1000 images per class) is analyzed by 5-fold stratified cross-validation. We want to make the system explainable and thus, we provide the entire test-set, the ROC curve, and the permutation importance in order to provide good confidence of the classification results on an image.",
+            "value": "For achieving earlier detection of breast cancer (resulting in higher clinical utility), a complete automated analysis of mammographic images is necessary. In this work, we propose a general DIP pipeline for breast cancer classification based on the CBIS-DDSM database. It is comprised of two stages: preprocessing (using bilateral filtering for noise reduction, CLAHE on both pass-directions, and an adaptive thresholding based method to segment the lesion) and a Random Forest classifier. The classification is achieved with 15 hand-crafted features separated in shape, intensity and textures (GLCM). Good classification performance is achieved when the data (train and test images are equally balanced and there are 1000 images per class) is analyzed by 5-fold stratified cross-validation. We want to make the system explainable and thus, we provide the entire test-set, the ROC curve, and the permutation importance in order to provide good confidence of the classification results on an image.",
+            "bBox": {
+              "x": 48.96,
+              "y": 180.24,
+              "w": 251.06,
+              "h": 147.55,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# Index Terms",
+            "value": "Index Terms",
+            "lvl": 1
+          },
+          {
+            "type": "text",
+            "md": "CBIS-DDSM, Bilateral Filtering, CLAHE, Adaptive Thresholding, Random Forest Classifier, GLCM, ROC Curve.",
+            "value": "CBIS-DDSM, Bilateral Filtering, CLAHE, Adaptive Thresholding, Random Forest Classifier, GLCM, ROC Curve.",
+            "bBox": {
+              "x": 48.96,
+              "y": 341.17,
+              "w": 251.06,
+              "h": 18.03,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# I. INTRODUCTION",
+            "value": "I. INTRODUCTION",
+            "lvl": 1,
+            "bBox": {
+              "x": 135.62,
+              "y": 385.02,
+              "w": 77.76,
+              "h": 8.91,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "Breast cancer is the most frequent type of cancer in women worldwide, accounting for almost 25% of all cancers in women and a smaller proportion of cancers overall. Despite various treatment methods, high mortality rates correlate highly with late-stage detection. Population-based screening using systematic mammographic views has significantly lowered the mortality rates by 15%-30% with the assistance of an image quality based evaluation system. The computational challenge presented by digital mammograms is due to the poor contrast and similarities between pathological characteristics (masses, calcifications, Architectural Distortions) and complex glandular tissue. This has produced two main challenges for automatic interpretation: (1) the inherently low contrast between the lesions and the surrounding tissue and (2) high variability in morphology and texture between different individuals. Thus, effective preprocessing and accurate segmentation are crucial steps prior to any feature extraction and detection algorithms. While current research is predominantly using deep learning, traditional handcrafted feature-based approaches have remained an important and computationally feasible solution; their ensemble application with classifiers like Random Forest ensures clinical explainability along with competitive detection performance. In this paper we present:",
+            "value": "Breast cancer is the most frequent type of cancer in women worldwide, accounting for almost 25% of all cancers in women and a smaller proportion of cancers overall. Despite various treatment methods, high mortality rates correlate highly with late-stage detection. Population-based screening using systematic mammographic views has significantly lowered the mortality rates by 15%-30% with the assistance of an image quality based evaluation system. The computational challenge presented by digital mammograms is due to the poor contrast and similarities between pathological characteristics (masses, calcifications, Architectural Distortions) and complex glandular tissue. This has produced two main challenges for automatic interpretation: (1) the inherently low contrast between the lesions and the surrounding tissue and (2) high variability in morphology and texture between different individuals. Thus, effective preprocessing and accurate segmentation are crucial steps prior to any feature extraction and detection algorithms. While current research is predominantly using deep learning, traditional handcrafted feature-based approaches have remained an important and computationally feasible solution; their ensemble application with classifiers like Random Forest ensures clinical explainability along with competitive detection performance. In this paper we present:",
+            "bBox": {
+              "x": 48.96,
+              "y": 409.23,
+              "w": 251.07,
+              "h": 271.97,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "text",
+            "md": "- A Multi-stage DIP Pipeline: incorporating bilateral filtering, double pass CLAHE, adaptive Gaussian thresholding, and morphological closing/opening stages for lesion isolation.",
+            "value": "- A Multi-stage DIP Pipeline: incorporating bilateral filtering, double pass CLAHE, adaptive Gaussian thresholding, and morphological closing/opening stages for lesion isolation.",
+            "bBox": {
+              "x": 48.96,
+              "y": 697.69,
+              "w": 251.06,
+              "h": 20.92,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# II. RELATED WORK",
+            "value": "II. RELATED WORK",
+            "lvl": 1,
+            "bBox": {
+              "x": 394.56,
+              "y": 291.91,
+              "w": 85.91,
+              "h": 8.91,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# A. Standardizing with the CBIS-DDSM Standard",
+            "value": "A. Standardizing with the CBIS-DDSM Standard",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.48,
+              "y": 310.02,
+              "w": 201.33,
+              "h": 8.85,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "All current CAD systems utilize the CBIS-DDSM dataset, which is an enhanced version of the original DDSM database. It contains everything from original DICOM files to professionally drawn ROI boxes in a comprehensive environment to train classifiers against and measure against as the world\u2019s standard of care.",
+            "value": "All current CAD systems utilize the CBIS-DDSM dataset, which is an enhanced version of the original DDSM database. It contains everything from original DICOM files to professionally drawn ROI boxes in a comprehensive environment to train classifiers against and measure against as the world\u2019s standard of care.",
+            "bBox": {
+              "x": 311.98,
+              "y": 326.9,
+              "w": 251.07,
+              "h": 68.73,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# B. Sophisticated Contrast Strategies",
+            "value": "B. Sophisticated Contrast Strategies",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.91,
+              "y": 409.7,
+              "w": 148.32,
+              "h": 8.85,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "Low contrast imaging is a serious problem in mammography. Though CLAHE is the most common image enhancement utilized, we take the ideas of Pizer and Reza further, utilizing a double-pass technique of enhancement that essentially multiplies the feature visibility, so that any masses\u2019 irregular margins are distinct enough for the segmentation stage to detect.",
+            "value": "Low contrast imaging is a serious problem in mammography. Though CLAHE is the most common image enhancement utilized, we take the ideas of Pizer and Reza further, utilizing a double-pass technique of enhancement that essentially multiplies the feature visibility, so that any masses\u2019 irregular margins are distinct enough for the segmentation stage to detect.",
+            "bBox": {
+              "x": 311.98,
+              "y": 438.54,
+              "w": 251.08,
+              "h": 68.73,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# C. Segmentation",
+            "value": "C. Segmentation",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.98,
+              "y": 521.48,
+              "w": 67.96,
+              "h": 8.71,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "We do not rely on global thresholds, which perform poorly on dense images, but rather use an adaptive Gaussian thresholding which allows the threshold values to be determined on a per-image basis. We then run morphological post-processing on the resultant masks to \u201cclean up\u201d the binary masks, removing any gaps in masses and deleting the small noise clusters that result from image analysis.",
+            "value": "We do not rely on global thresholds, which perform poorly on dense images, but rather use an adaptive Gaussian thresholding which allows the threshold values to be determined on a per-image basis. We then run morphological post-processing on the resultant masks to \u201cclean up\u201d the binary masks, removing any gaps in masses and deleting the small noise clusters that result from image analysis.",
+            "bBox": {
+              "x": 311.98,
+              "y": 538.23,
+              "w": 251.06,
+              "h": 80.7,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# D. Interpretable Feature Engineering",
+            "value": "D. Interpretable Feature Engineering",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.91,
+              "y": 632.98,
+              "w": 153.59,
+              "h": 8.85,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "Though deep learning is effective, it is not as transparent as handcrafted features (i.e. Shape eccentricity, GLCM features). We used handcrafted features in the Random Forest algorithm which allows for robust decision making with features whose individual importance can be mathematically proven and clinically interpreted.",
+            "value": "Though deep learning is effective, it is not as transparent as handcrafted features (i.e. Shape eccentricity, GLCM features). We used handcrafted features in the Random Forest algorithm which allows for robust decision making with features whose individual importance can be mathematically proven and clinically interpreted.",
+            "bBox": {
+              "x": 311.98,
+              "y": 649.86,
+              "w": 251.07,
+              "h": 68.74,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          }
+        ],
+        "status": "OK",
+        "originalOrientationAngle": 0,
+        "links": [],
+        "width": 612,
+        "height": 792,
+        "triggeredAutoMode": false,
+        "parsingMode": "accurate",
+        "structuredData": null,
+        "noStructuredContent": false,
+        "noTextContent": false,
+        "pageHeaderMarkdown": "Automated Contrast Enhancement of Mammograms for Early Cancer Detection",
+        "pageFooterMarkdown": "",
+        "printedPageNumber": "",
+        "slideSpeakerNotes": null,
+        "slideSectionName": null,
+        "confidence": 0.882,
+        "costOptimized": false
+      },
+      {
+        "page": 2,
+        "text": "                                               III. DATASET\n\nCBIS-DDSM (Curated Breast Imaging Subset of DDSM),\nwhich contains a total number of screening mammography\nexamination cases partitioned in benign and malignant. In our                             d\npipeline, the dataset\u2019s location will automatically be found\nfrom several root paths.               MAX = 1, 000 is used which                      Preprocessing pipeline ready.\ncontains at most 1000 images for each class. For a fallback\nscenario in a disconnected system, an automatic synthetic             Fig. 1. Preprocessing pipeline output showing the original grayscale m mm -\ndataset fallback mechanism will work. 5,000 samples of a              gram ROI, denoised result, and double-pass CLAHE enhancement for benign\n                                                                      (top) and malignant (bottom) samples.\nbalanced set (2500 for each class) will be generated using\nmathematically prescribed morphological priors mimicking\nsome aspects of clinical ROI.                                         B. Segmentation\n                                                                                       The segment_tumor() module isolates the pathological\n                                                 TABLE I              region using:\n                       DATASET CONFIGURATION. THE SYSTEM AUTO-DETECTS AVAILABILITY     1)  Hybrid Thresholding: Otsu thresholding focused on the\n     AND SWITCHES BETWEEN REAL AND SYNTHETIC MODES.                                        70th-percentile brightest pixels combined with Adaptive\n\n  Split / Mode         Class        Samples     Notes                                      Gaussian Thresholding (blockSize = 35, C = 5).\n  Real (CBIS-DDSM)     Benign       \u2264 1,000     JPEG / DICOM                           2)  Morphological Refinement: A disk-based \u201dOpening\u201d\n  Real (CBIS-DDSM)     Malignant    \u2264 1,000     JPEG / DICOM                               (radius 3) removes noise fragments, followed by a\n                                                                                           \u201dClosing\u201d (radius 5) to ensure interior mask density.\n\n                                             IV. METHODOLOGY                           3)  Contour Selection: The largest connected component\n                                                                                           is selected to isolate the primary lesion and suppress\n The diagnostic pipeline consists of six successive stages:                                spurious detections.\nimage loading, preprocessing, lesion segmentation, m  ph -\nlogical post-processing, feature extraction, and Random Forest\nclassification.\n\nA. Preprocessing Pipeline\n The                preprocess() function implements a four-stage\nenhancement sequence:\n 1)  Bilateral Denoising (d = 9, \u03c3Color = 75, \u03c3Space = 75):           Fig. 2. Fig. 2: Segmentation pipeline output \u2014 Otsu mask, adaptive threshold\n     Smooths homogeneous regions while preserving critical            mask, morphological refinement, and final contour overlay for representative\n                                                                      samples.\n     edge gradients.\n 2)  Median Filtering (kernel size=3): Specifically targets           C. Feature Extraction\n     residual salt-and-pepper noise.\n 3)  Double-Pass CLAHE              (clipLimit                  =        The               extract_feature()        function computes a 15-\n     2.0, tileGridSize            = 8 \u00d7 8): Applied sequentially;     dimensional feature vector from the preprocessed ROI and\n     the first pass stabilizes global contrast, while the second      its corresponding binary mask. These features characterize the\n     enhances localized intensity variations.                         lesion across three primary domains: shape morphology,  n  n-\n 4)  Normalization: Rescales pixel intensities to a      [0, 1]       sity statistics, and GLCM-based texture descriptors. Detailed\n     float32 range.                                                   definitions and their clinical significance are provided in Table\n 5)  Otsu Thresholding:            Otsu\u2019s method finds an optimal     II.\n     global threshold value by maximizing the between-class\n     variance of foreground and background pixels. It works\n     on assumption that intensity distribution is bimodal and\n     calculates a threshold value that optimally separates the\n     two classes. It is used for initial lesion segmentation of\n     mammographic images.\n 6)  Adaptive Thresholding: Adaptive thresholding assigns\n     a local threshold for each pixel on the basis of d     -\n     bution of pixel intensity in its neighborhood. Gaussian\n     weighted averaging is implemented to adapt illumination\n     variance. This technique is suitable for medical images\n     where illumination is non-uniform throughout the image.",
+        "md": "\n\n# III. DATASET\n\nCBIS-DDSM (Curated Breast Imaging Subset of DDSM), which contains a total number of screening mammography examination cases partitioned in benign and malignant. In our pipeline, the dataset\u2019s location will automatically be found from several root paths. MAX = 1, 000 is used which contains at most 1000 images for each class. For a fallback scenario in a disconnected system, an automatic synthetic dataset fallback mechanism will work. 5,000 samples of a balanced set (2500 for each class) will be generated using mathematically prescribed morphological priors mimicking some aspects of clinical ROI.\n\n# B. Segmentation\n\nThe segment_tumor() module isolates the pathological region using:\n\n| TABLE I                                                                                                    |           |         |              |\n| ---------------------------------------------------------------------------------------------------------- | --------- | ------- | ------------ |\n| DATASET CONFIGURATION. THE SYSTEM AUTO-DETECTS AVAILABILITY AND SWITCHES BETWEEN REAL AND SYNTHETIC MODES. |           |         |              |\n| Split / Mode                                                                                               | Class     | Samples | Notes        |\n| Real (CBIS-DDSM)                                                                                           | Benign    | \u2264 1,000 | JPEG / DICOM |\n| Real (CBIS-DDSM)                                                                                           | Malignant | \u2264 1,000 | JPEG / DICOM |\n\n# IV. METHODOLOGY\n\nThe diagnostic pipeline consists of six successive stages: image loading, preprocessing, lesion segmentation, morphological post-processing, feature extraction, and Random Forest classification.\n\n# A. Preprocessing Pipeline\n\nThe preprocess() function implements a four-stage enhancement sequence:\n\n1. Bilateral Denoising (d = 9, \u03c3Color = 75, \u03c3Space = 75): Smooths homogeneous regions while preserving critical edge gradients.\n2. Median Filtering (kernel size=3): Specifically targets residual salt-and-pepper noise.\n3. Double-Pass CLAHE (clipLimit = 2.0, tileGridSize = 8 \u00d7 8): Applied sequentially; the first pass stabilizes global contrast, while the second enhances localized intensity variations.\n4. Normalization: Rescales pixel intensities to a [0, 1] float32 range.\n5. Otsu Thresholding: Otsu\u2019s method finds an optimal global threshold value by maximizing the between-class variance of foreground and background pixels. It works on the assumption that intensity distribution is bimodal and calculates a threshold value that optimally separates the two classes. It is used for initial lesion segmentation of mammographic images.\n6. Adaptive Thresholding: Adaptive thresholding assigns a local threshold for each pixel on the basis of distribution of pixel intensity in its neighborhood. Gaussian weighted averaging is implemented to adapt illumination variance. This technique is suitable for medical images where illumination is non-uniform throughout the image.\n\n# C. Feature Extraction\n\nThe extract_feature() function computes a 15-dimensional feature vector from the preprocessed ROI and its corresponding binary mask. These features characterize the lesion across three primary domains: shape morphology, density statistics, and GLCM-based texture descriptors. Detailed definitions and their clinical significance are provided in Table II.\n\n",
+        "images": [
+          {
+            "name": "img_p1_1.png",
+            "height": 76.802,
+            "width": 225.946,
+            "x": 324.531,
+            "y": 50.54,
+            "original_width": 456,
+            "original_height": 155,
+            "rotation": 0,
+            "ocr": [
+              {
+                "x": 9,
+                "y": 140,
+                "w": 123,
+                "h": 10,
+                "confidence": 0.968,
+                "text": "Preprocessing pipeline ready."
+              },
+              {
+                "x": 18,
+                "y": 98,
+                "w": 21,
+                "h": 20,
+                "confidence": 0.309,
+                "text": "d"
+              }
+            ]
+          },
+          {
+            "name": "img_p1_2.png",
+            "height": 65.647,
+            "width": 175.739,
+            "x": 349.637,
+            "y": 349.953,
+            "original_width": 354,
+            "original_height": 132,
+            "rotation": 0
+          },
+          {
+            "name": "chart_p2_0.png",
+            "height": 50.035,
+            "width": 230.333,
+            "x": 59.326,
+            "y": 234.645,
+            "original_width": 465,
+            "original_height": 101,
+            "rotation": 0
+          },
+          {
+            "name": "page_2.jpg",
+            "height": 792,
+            "width": 612,
+            "x": 0,
+            "y": 0,
+            "original_width": 1236,
+            "original_height": 1600,
+            "rotation": 0,
+            "type": "full_page_screenshot"
+          }
+        ],
+        "charts": [
+          {
+            "name": "chart_p2_0.png",
+            "height": 50.04,
+            "width": 230.33,
+            "x": 59.33,
+            "y": 234.65
+          }
+        ],
+        "items": [
+          {
+            "type": "heading",
+            "md": "# III. DATASET",
+            "value": "III. DATASET",
+            "lvl": 1,
+            "bBox": {
+              "x": 145.43,
+              "y": 52.16,
+              "w": 58.13,
+              "h": 8.91,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "CBIS-DDSM (Curated Breast Imaging Subset of DDSM), which contains a total number of screening mammography examination cases partitioned in benign and malignant. In our pipeline, the dataset\u2019s location will automatically be found from several root paths. MAX = 1, 000 is used which contains at most 1000 images for each class. For a fallback scenario in a disconnected system, an automatic synthetic dataset fallback mechanism will work. 5,000 samples of a balanced set (2500 for each class) will be generated using mathematically prescribed morphological priors mimicking some aspects of clinical ROI.",
+            "value": "CBIS-DDSM (Curated Breast Imaging Subset of DDSM), which contains a total number of screening mammography examination cases partitioned in benign and malignant. In our pipeline, the dataset\u2019s location will automatically be found from several root paths. MAX = 1, 000 is used which contains at most 1000 images for each class. For a fallback scenario in a disconnected system, an automatic synthetic dataset fallback mechanism will work. 5,000 samples of a balanced set (2500 for each class) will be generated using mathematically prescribed morphological priors mimicking some aspects of clinical ROI.",
+            "bBox": {
+              "x": 48.96,
+              "y": 70.17,
+              "w": 251.11,
+              "h": 128.51,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# B. Segmentation",
+            "value": "B. Segmentation",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.91,
+              "y": 188.75,
+              "w": 67.47,
+              "h": 8.71,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "The segment_tumor() module isolates the pathological region using:",
+            "value": "The segment_tumor() module isolates the pathological region using:",
+            "bBox": {
+              "x": 311.98,
+              "y": 203.71,
+              "w": 251.06,
+              "h": 20.92,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "table",
+            "md": "| TABLE I                                                                                                    |           |         |              |\n| ---------------------------------------------------------------------------------------------------------- | --------- | ------- | ------------ |\n| DATASET CONFIGURATION. THE SYSTEM AUTO-DETECTS AVAILABILITY AND SWITCHES BETWEEN REAL AND SYNTHETIC MODES. |           |         |              |\n| Split / Mode                                                                                               | Class     | Samples | Notes        |\n| Real (CBIS-DDSM)                                                                                           | Benign    | \u2264 1,000 | JPEG / DICOM |\n| Real (CBIS-DDSM)                                                                                           | Malignant | \u2264 1,000 | JPEG / DICOM |",
+            "rows": [
+              [
+                "TABLE I",
+                "",
+                "",
+                ""
+              ],
+              [
+                "DATASET CONFIGURATION. THE SYSTEM AUTO-DETECTS AVAILABILITY AND SWITCHES BETWEEN REAL AND SYNTHETIC MODES.",
+                "",
+                "",
+                ""
+              ],
+              [
+                "Split / Mode",
+                "Class",
+                "Samples",
+                "Notes"
+              ],
+              [
+                "Real (CBIS-DDSM)",
+                "Benign",
+                "\u2264 1,000",
+                "JPEG / DICOM"
+              ],
+              [
+                "Real (CBIS-DDSM)",
+                "Malignant",
+                "\u2264 1,000",
+                "JPEG / DICOM"
+              ]
+            ],
+            "isPerfectTable": true,
+            "csv": "\"TABLE I\",\"\",\"\",\"\"\n\"DATASET CONFIGURATION. THE SYSTEM AUTO-DETECTS AVAILABILITY AND SWITCHES BETWEEN REAL AND SYNTHETIC MODES.\",\"\",\"\",\"\"\n\"Split / Mode\",\"Class\",\"Samples\",\"Notes\"\n\"Real (CBIS-DDSM)\",\"Benign\",\"\u2264 1,000\",\"JPEG / DICOM\"\n\"Real (CBIS-DDSM)\",\"Malignant\",\"\u2264 1,000\",\"JPEG / DICOM\"",
+            "bBox": {
+              "x": 48.47,
+              "y": 52.16,
+              "w": 514.58,
+              "h": 661.75,
+              "confidence": 0.7,
+              "label": "table"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# IV. METHODOLOGY",
+            "value": "IV. METHODOLOGY",
+            "lvl": 1,
+            "bBox": {
+              "x": 124.17,
+              "y": 309.44,
+              "w": 100.64,
+              "h": 8.91,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "The diagnostic pipeline consists of six successive stages: image loading, preprocessing, lesion segmentation, morphological post-processing, feature extraction, and Random Forest classification.",
+            "value": "The diagnostic pipeline consists of six successive stages: image loading, preprocessing, lesion segmentation, morphological post-processing, feature extraction, and Random Forest classification.",
+            "bBox": {
+              "x": 48.96,
+              "y": 327.45,
+              "w": 251.07,
+              "h": 44.82,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# A. Preprocessing Pipeline",
+            "value": "A. Preprocessing Pipeline",
+            "lvl": 1,
+            "bBox": {
+              "x": 48.47,
+              "y": 386.2,
+              "w": 107.49,
+              "h": 8.85,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "The preprocess() function implements a four-stage enhancement sequence:",
+            "value": "The preprocess() function implements a four-stage enhancement sequence:",
+            "bBox": {
+              "x": 48.96,
+              "y": 403.03,
+              "w": 251.06,
+              "h": 20.91,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "text",
+            "md": "1. Bilateral Denoising (d = 9, \u03c3Color = 75, \u03c3Space = 75): Smooths homogeneous regions while preserving critical edge gradients.\n2. Median Filtering (kernel size=3): Specifically targets residual salt-and-pepper noise.\n3. Double-Pass CLAHE (clipLimit = 2.0, tileGridSize = 8 \u00d7 8): Applied sequentially; the first pass stabilizes global contrast, while the second enhances localized intensity variations.\n4. Normalization: Rescales pixel intensities to a [0, 1] float32 range.\n5. Otsu Thresholding: Otsu\u2019s method finds an optimal global threshold value by maximizing the between-class variance of foreground and background pixels. It works on the assumption that intensity distribution is bimodal and calculates a threshold value that optimally separates the two classes. It is used for initial lesion segmentation of mammographic images.\n6. Adaptive Thresholding: Adaptive thresholding assigns a local threshold for each pixel on the basis of distribution of pixel intensity in its neighborhood. Gaussian weighted averaging is implemented to adapt illumination variance. This technique is suitable for medical images where illumination is non-uniform throughout the image.",
+            "value": "1. Bilateral Denoising (d = 9, \u03c3Color = 75, \u03c3Space = 75): Smooths homogeneous regions while preserving critical edge gradients.\n2. Median Filtering (kernel size=3): Specifically targets residual salt-and-pepper noise.\n3. Double-Pass CLAHE (clipLimit = 2.0, tileGridSize = 8 \u00d7 8): Applied sequentially; the first pass stabilizes global contrast, while the second enhances localized intensity variations.\n4. Normalization: Rescales pixel intensities to a [0, 1] float32 range.\n5. Otsu Thresholding: Otsu\u2019s method finds an optimal global threshold value by maximizing the between-class variance of foreground and background pixels. It works on the assumption that intensity distribution is bimodal and calculates a threshold value that optimally separates the two classes. It is used for initial lesion segmentation of mammographic images.\n6. Adaptive Thresholding: Adaptive thresholding assigns a local threshold for each pixel on the basis of distribution of pixel intensity in its neighborhood. Gaussian weighted averaging is implemented to adapt illumination variance. This technique is suitable for medical images where illumination is non-uniform throughout the image.",
+            "bBox": {
+              "x": 73.2,
+              "y": 429.86,
+              "w": 227.32,
+              "h": 284.05,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# C. Feature Extraction",
+            "value": "C. Feature Extraction",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.98,
+              "y": 473.21,
+              "w": 89.94,
+              "h": 8.59,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "The extract_feature() function computes a 15-dimensional feature vector from the preprocessed ROI and its corresponding binary mask. These features characterize the lesion across three primary domains: shape morphology, density statistics, and GLCM-based texture descriptors. Detailed definitions and their clinical significance are provided in Table II.",
+            "value": "The extract_feature() function computes a 15-dimensional feature vector from the preprocessed ROI and its corresponding binary mask. These features characterize the lesion across three primary domains: shape morphology, density statistics, and GLCM-based texture descriptors. Detailed definitions and their clinical significance are provided in Table II.",
+            "bBox": {
+              "x": 58.93,
+              "y": 403.03,
+              "w": 504.11,
+              "h": 165.83,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          }
+        ],
+        "status": "OK",
+        "originalOrientationAngle": 0,
+        "links": [],
+        "width": 612,
+        "height": 792,
+        "triggeredAutoMode": false,
+        "parsingMode": "accurate",
+        "structuredData": null,
+        "noStructuredContent": false,
+        "noTextContent": false,
+        "pageHeaderMarkdown": "",
+        "pageFooterMarkdown": "",
+        "printedPageNumber": "",
+        "slideSpeakerNotes": null,
+        "slideSectionName": null,
+        "confidence": 0.774,
+        "costOptimized": false
+      },
+      {
+        "page": 3,
+        "text": "                                     TABLE II\n                             COMPLETE 15-FEATURE DESCRIPTOR SET WITH DEFINITIONS AND\n                                                CLINICAL RELEVANCE\n\n   #      Feature            Definition                      Clinical Relevance\n   1      Area               Total pixel count               Malignant lesions\n                             inside lesion mask              often larger\n   2      Perimeter          Arc length of l -               Boundary length\n                             sion contour                    descriptor\n   3      Circularity        4\u03c0 \u00d7                 Area 2     Regular vs.      u-     Feature visualIzations saved.\n                                      Perimeter              lar shape\n\n   4      Compactness        <u>Perimeter</u>2               Higher for  p  u-       Fig. 4. Feature correlation matrix. GLCM features show moderate  n   -\n                             Area                            lated lesions           correlation; shape features remain largely orthogonal to texture features.\n\n   5      Solidity                   Area                    Margin convexity\n                             Convex Hull Area\n   6      Roughness          Perimeter2                      Boundary texture\n                             Area                            proxy                   Fig. 4 justifies the inclusion of both intensity and texture d -\n\n7      Aspect Ratio       Width / Height of\n                          bounding box\n8      Extent             Area / Bounding\n                          box area\n9      Mean Inten.        Average ROI pixel\nElongation of mass      mains to capture comprehensive lesion characteristics.e lesion\n                        characteristics.\nRectangular fill   -\ntio\nTissue density  nd -\n\n       Std                value\n10             Inten.     Std. dev. of  n  n-\n                          sity\n11     Skewness           3rd moment of d  -\n                          tribution\n12     GLCM Cont.         Contrast (spatial\n                          variation)\n13     GLCM Ener.         Energy\n                          (uniformity)\n14     GLCM               Homogeneity\n       Homog.             (smoothness)\n15     GLCM Corr.         Correlation\n\ncator                   D. Random Forest Classifier\nInternal\nheterogeneity\nIntensity    mm -                             Classification is performed via an optimized       -\ntry                     learn pipeline using a       StandardScaler                          and a\nTexture roughness       RandomForestClassifier       (n estimators                          = 200,\n                        class                  weight=\u2019balanced\u2019). The data is partitioned into an\nPattern consistency     80/20 train-test split, with the training set subject to stratified\n                        5-fold cross-validation. To maintain clinical interpretability,\nStructural    ul  -     Permutation Importance (n                   repeats = 10) is calculated on\nity                     the test set to rank feature contribution.\nLinear\ndependencies\n\n    Following extraction, the discriminative power of these f  -     V. RESULT\n    tures was validated through distribution analysis. As illustrated\n    in Fig. 3 and Fig. 4, shape-based descriptors such as solidity\n    and circularity provide the highest degree of class separation.  A. Random Forest Results Dashboard\n\n    Figure 5 presents the complete evaluation dashboard  n-\n    cluding the confusion matrix, ROC curve with AUC,      -\n    validation accuracy distribution, and permutation-based feature\n    importance ranking.\n\n                                                                                                  MALIGNANT\n                                                                                                  Coeflioence 98,2%\n\n    Fig. 3. Feature distribution histograms for all 15 features comparing Benign\n    (green) vs. Malignant (red) classes. Shape features show the strongest   p -\n    ration.                                                                     Fig. 5. Random Forest results dashboard \u2014 (left to right) confusion matrix,\n\n    The visual evidence provided by the histograms in Fig.                      ROC curve with AUC, 5-fold CV accuracy distribution, and permutation\n                                                                                feature importance\n    3 confirms that several handcrafted features possess high\n    discriminative power. Additionally, the correlation analysis in",
+        "md": "\n# TABLE II\n\n# COMPLETE 15-FEATURE DESCRIPTOR SET WITH DEFINITIONS AND CLINICAL RELEVANCE\n\n| #  | Feature          | Definition                           | Clinical Relevance             |\n| -- | ---------------- | ------------------------------------ | ------------------------------ |\n| 1  | Area             | Total pixel count inside lesion mask | Malignant lesions often larger |\n| 2  | Perimeter        | Arc length of lesion contour         | Boundary length descriptor     |\n| 3  | Circularity      | 4\u03c0 \u00d7 Area / Perimeter2               | Regular vs. irregular shape    |\n| 4  | Compactness      | Perimeter2 / Area                    | Higher for irregular lesions   |\n| 5  | Solidity         | Area / Convex Hull Area              | Margin convexity               |\n| 6  | Roughness        | Perimeter2 / Area                    | Boundary texture proxy         |\n| 7  | Aspect Ratio     | Width / Height of bounding box       |                                |\n| 8  | Extent           | Area / Bounding box area             |                                |\n| 9  | Mean Intensity   | Average ROI pixel intensity          | Elongation of mass             |\n| 10 | Intensity Std    | Std. dev. of intensity               |                                |\n| 11 | Skewness         | 3rd moment of distribution           |                                |\n| 12 | GLCM Contrast    | Contrast (spatial variation)         |                                |\n| 13 | GLCM Energy      | Energy (uniformity)                  |                                |\n| 14 | GLCM Homogeneity | Homogeneity (smoothness)             |                                |\n| 15 | GLCM Correlation | Correlation                          |                                |\n\nD. Random Forest Classifier\n\nClassification is performed via an optimized learning pipeline using a RandomForestClassifier (n estimators = 200, weight='balanced'). The data is partitioned into an 80/20 train-test split, with the training set subject to stratified 5-fold cross-validation. To maintain clinical interpretability, Permutation Importance (n repeats = 10) is calculated on the test set to rank feature contribution.\n\nFollowing extraction, the discriminative power of these features was validated through distribution analysis. As illustrated in Fig. 3 and Fig. 4, shape-based descriptors such as solidity and circularity provide the highest degree of class separation.\n\n# A. Random Forest Results Dashboard\n\nFigure 5 presents the complete evaluation dashboard including the confusion matrix, ROC curve with AUC, validation accuracy distribution, and permutation-based feature importance ranking.\n\nMALIGNANT Coefficient 98.2%\n\nFig. 3. Feature distribution histograms for all 15 features comparing Benign (green) vs. Malignant (red) classes. Shape features show the strongest separation.\n\nThe visual evidence provided by the histograms in Fig. 3 confirms that several handcrafted features possess high discriminative power. Additionally, the correlation analysis in Fig. 4 justifies the inclusion of both intensity and texture descriptors.\n\n",
+        "images": [
+          {
+            "name": "img_p2_1.png",
+            "height": 114.044,
+            "width": 175.732,
+            "x": 86.623,
+            "y": 522.877,
+            "original_width": 354,
+            "original_height": 230,
+            "rotation": 0
+          },
+          {
+            "name": "img_p2_2.png",
+            "height": 107.166,
+            "width": 225.945,
+            "x": 324.531,
+            "y": 50.542,
+            "rotation": 0,
+            "ocr": [
+              {
+                "x": 1,
+                "y": 493,
+                "w": 318,
+                "h": 34,
+                "confidence": 0.973,
+                "text": "Feature visualIzations saved."
+              }
+            ]
+          },
+          {
+            "name": "img_p2_3.png",
+            "height": 56.08,
+            "width": 225.947,
+            "x": 324.531,
+            "y": 601.82,
+            "original_width": 456,
+            "original_height": 113,
+            "rotation": 0,
+            "ocr": [
+              {
+                "x": 391,
+                "y": 55,
+                "w": 43,
+                "h": 9,
+                "confidence": 0.694,
+                "text": "Coeflioence 98,2%"
+              },
+              {
+                "x": 387,
+                "y": 39,
+                "w": 50,
+                "h": 9,
+                "confidence": 1,
+                "text": "MALIGNANT"
+              }
+            ]
+          },
+          {
+            "name": "chart_p3_0.png",
+            "height": 370.28999999999996,
+            "width": 514.47,
+            "x": 48.566,
+            "y": 71.439,
+            "rotation": 0
+          },
+          {
+            "name": "page_3.jpg",
+            "height": 792,
+            "width": 612,
+            "x": 0,
+            "y": 0,
+            "original_width": 1236,
+            "original_height": 1600,
+            "rotation": 0,
+            "type": "full_page_screenshot"
+          }
+        ],
+        "charts": [
+          {
+            "name": "chart_p3_0.png",
+            "height": 370.29,
+            "width": 514.47,
+            "x": 48.57,
+            "y": 71.44
+          }
+        ],
+        "items": [
+          {
+            "type": "heading",
+            "md": "# TABLE II",
+            "value": "TABLE II",
+            "lvl": 1,
+            "bBox": {
+              "x": 157.98,
+              "y": 53.51,
+              "w": 33.04,
+              "h": 7.13,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# COMPLETE 15-FEATURE DESCRIPTOR SET WITH DEFINITIONS AND CLINICAL RELEVANCE",
+            "value": "COMPLETE 15-FEATURE DESCRIPTOR SET WITH DEFINITIONS AND CLINICAL RELEVANCE",
+            "lvl": 1,
+            "bBox": {
+              "x": 60.4,
+              "y": 62.39,
+              "w": 228.19,
+              "h": 16.17,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "table",
+            "md": "| #  | Feature          | Definition                           | Clinical Relevance             |\n| -- | ---------------- | ------------------------------------ | ------------------------------ |\n| 1  | Area             | Total pixel count inside lesion mask | Malignant lesions often larger |\n| 2  | Perimeter        | Arc length of lesion contour         | Boundary length descriptor     |\n| 3  | Circularity      | 4\u03c0 \u00d7 Area / Perimeter2               | Regular vs. irregular shape    |\n| 4  | Compactness      | Perimeter2 / Area                    | Higher for irregular lesions   |\n| 5  | Solidity         | Area / Convex Hull Area              | Margin convexity               |\n| 6  | Roughness        | Perimeter2 / Area                    | Boundary texture proxy         |\n| 7  | Aspect Ratio     | Width / Height of bounding box       |                                |\n| 8  | Extent           | Area / Bounding box area             |                                |\n| 9  | Mean Intensity   | Average ROI pixel intensity          | Elongation of mass             |\n| 10 | Intensity Std    | Std. dev. of intensity               |                                |\n| 11 | Skewness         | 3rd moment of distribution           |                                |\n| 12 | GLCM Contrast    | Contrast (spatial variation)         |                                |\n| 13 | GLCM Energy      | Energy (uniformity)                  |                                |\n| 14 | GLCM Homogeneity | Homogeneity (smoothness)             |                                |\n| 15 | GLCM Correlation | Correlation                          |                                |",
+            "rows": [
+              [
+                "#",
+                "Feature",
+                "Definition",
+                "Clinical Relevance"
+              ],
+              [
+                "1",
+                "Area",
+                "Total pixel count inside lesion mask",
+                "Malignant lesions often larger"
+              ],
+              [
+                "2",
+                "Perimeter",
+                "Arc length of lesion contour",
+                "Boundary length descriptor"
+              ],
+              [
+                "3",
+                "Circularity",
+                "4\u03c0 \u00d7 Area / Perimeter2",
+                "Regular vs. irregular shape"
+              ],
+              [
+                "4",
+                "Compactness",
+                "Perimeter2 / Area",
+                "Higher for irregular lesions"
+              ],
+              [
+                "5",
+                "Solidity",
+                "Area / Convex Hull Area",
+                "Margin convexity"
+              ],
+              [
+                "6",
+                "Roughness",
+                "Perimeter2 / Area",
+                "Boundary texture proxy"
+              ],
+              [
+                "7",
+                "Aspect Ratio",
+                "Width / Height of bounding box",
+                ""
+              ],
+              [
+                "8",
+                "Extent",
+                "Area / Bounding box area",
+                ""
+              ],
+              [
+                "9",
+                "Mean Intensity",
+                "Average ROI pixel intensity",
+                "Elongation of mass"
+              ],
+              [
+                "10",
+                "Intensity Std",
+                "Std. dev. of intensity",
+                ""
+              ],
+              [
+                "11",
+                "Skewness",
+                "3rd moment of distribution",
+                ""
+              ],
+              [
+                "12",
+                "GLCM Contrast",
+                "Contrast (spatial variation)",
+                ""
+              ],
+              [
+                "13",
+                "GLCM Energy",
+                "Energy (uniformity)",
+                ""
+              ],
+              [
+                "14",
+                "GLCM Homogeneity",
+                "Homogeneity (smoothness)",
+                ""
+              ],
+              [
+                "15",
+                "GLCM Correlation",
+                "Correlation",
+                ""
+              ]
+            ],
+            "isPerfectTable": true,
+            "csv": "\"#\",\"Feature\",\"Definition\",\"Clinical Relevance\"\n\"1\",\"Area\",\"Total pixel count inside lesion mask\",\"Malignant lesions often larger\"\n\"2\",\"Perimeter\",\"Arc length of lesion contour\",\"Boundary length descriptor\"\n\"3\",\"Circularity\",\"4\u03c0 \u00d7 Area / Perimeter2\",\"Regular vs. irregular shape\"\n\"4\",\"Compactness\",\"Perimeter2 / Area\",\"Higher for irregular lesions\"\n\"5\",\"Solidity\",\"Area / Convex Hull Area\",\"Margin convexity\"\n\"6\",\"Roughness\",\"Perimeter2 / Area\",\"Boundary texture proxy\"\n\"7\",\"Aspect Ratio\",\"Width / Height of bounding box\",\"\"\n\"8\",\"Extent\",\"Area / Bounding box area\",\"\"\n\"9\",\"Mean Intensity\",\"Average ROI pixel intensity\",\"Elongation of mass\"\n\"10\",\"Intensity Std\",\"Std. dev. of intensity\",\"\"\n\"11\",\"Skewness\",\"3rd moment of distribution\",\"\"\n\"12\",\"GLCM Contrast\",\"Contrast (spatial variation)\",\"\"\n\"13\",\"GLCM Energy\",\"Energy (uniformity)\",\"\"\n\"14\",\"GLCM Homogeneity\",\"Homogeneity (smoothness)\",\"\"\n\"15\",\"GLCM Correlation\",\"Correlation\",\"\"",
+            "bBox": {
+              "x": 48.96,
+              "y": 53.51,
+              "w": 514.07,
+              "h": 665.1,
+              "confidence": 0.7,
+              "label": "table"
+            }
+          },
+          {
+            "type": "text",
+            "md": "D. Random Forest Classifier",
+            "value": "D. Random Forest Classifier",
+            "bBox": {
+              "x": 311.91,
+              "y": 297.8,
+              "w": 117.94,
+              "h": 8.86,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "text",
+            "md": "Classification is performed via an optimized learning pipeline using a RandomForestClassifier (n estimators = 200, weight='balanced'). The data is partitioned into an 80/20 train-test split, with the training set subject to stratified 5-fold cross-validation. To maintain clinical interpretability, Permutation Importance (n repeats = 10) is calculated on the test set to rank feature contribution.",
+            "value": "Classification is performed via an optimized learning pipeline using a RandomForestClassifier (n estimators = 200, weight='balanced'). The data is partitioned into an 80/20 train-test split, with the training set subject to stratified 5-fold cross-validation. To maintain clinical interpretability, Permutation Importance (n repeats = 10) is calculated on the test set to rank feature contribution.",
+            "bBox": {
+              "x": 223.02,
+              "y": 267.93,
+              "w": 340.02,
+              "h": 151.76,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "text",
+            "md": "Following extraction, the discriminative power of these features was validated through distribution analysis. As illustrated in Fig. 3 and Fig. 4, shape-based descriptors such as solidity and circularity provide the highest degree of class separation.",
+            "value": "Following extraction, the discriminative power of these features was validated through distribution analysis. As illustrated in Fig. 3 and Fig. 4, shape-based descriptors such as solidity and circularity provide the highest degree of class separation.",
+            "bBox": {
+              "x": 48.96,
+              "y": 267.93,
+              "w": 251.06,
+              "h": 241.5,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# A. Random Forest Results Dashboard",
+            "value": "A. Random Forest Results Dashboard",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.48,
+              "y": 503.2,
+              "w": 155.83,
+              "h": 8.73,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "Figure 5 presents the complete evaluation dashboard including the confusion matrix, ROC curve with AUC, validation accuracy distribution, and permutation-based feature importance ranking.",
+            "value": "Figure 5 presents the complete evaluation dashboard including the confusion matrix, ROC curve with AUC, validation accuracy distribution, and permutation-based feature importance ranking.",
+            "bBox": {
+              "x": 57.58,
+              "y": 197.63,
+              "w": 505.45,
+              "h": 379.66,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "text",
+            "md": "MALIGNANT Coefficient 98.2%",
+            "value": "MALIGNANT Coefficient 98.2%",
+            "bBox": {
+              "x": 57.58,
+              "y": 127.45,
+              "w": 483.12,
+              "h": 497.73,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "text",
+            "md": "Fig. 3. Feature distribution histograms for all 15 features comparing Benign (green) vs. Malignant (red) classes. Shape features show the strongest separation.",
+            "value": "Fig. 3. Feature distribution histograms for all 15 features comparing Benign (green) vs. Malignant (red) classes. Shape features show the strongest separation.",
+            "bBox": {
+              "x": 48.96,
+              "y": 362.92,
+              "w": 491.74,
+              "h": 311.59,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "text",
+            "md": "The visual evidence provided by the histograms in Fig. 3 confirms that several handcrafted features possess high discriminative power. Additionally, the correlation analysis in Fig. 4 justifies the inclusion of both intensity and texture descriptors.",
+            "value": "The visual evidence provided by the histograms in Fig. 3 confirms that several handcrafted features possess high discriminative power. Additionally, the correlation analysis in Fig. 4 justifies the inclusion of both intensity and texture descriptors.",
+            "bBox": {
+              "x": 48.96,
+              "y": 137.37,
+              "w": 251.06,
+              "h": 581.24,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          }
+        ],
+        "status": "OK",
+        "originalOrientationAngle": 0,
+        "links": [],
+        "width": 612,
+        "height": 792,
+        "triggeredAutoMode": false,
+        "parsingMode": "accurate",
+        "structuredData": null,
+        "noStructuredContent": false,
+        "noTextContent": false,
+        "pageHeaderMarkdown": "",
+        "pageFooterMarkdown": "",
+        "printedPageNumber": "",
+        "slideSpeakerNotes": null,
+        "slideSectionName": null,
+        "confidence": 0.77,
+        "costOptimized": false
+      },
+      {
+        "page": 4,
+        "text": "B. Classifier Performance Matrics    E. Comparison with Published Methods\n\n                                                TABLE III                           C                   P       TABLE V\n                             CLASSIFICATION PERFORMANCE AND INFERENCE METRICS            OMPARISON WITH    UBLISHED MAMMOGRAPHY CLASSIFICATION\n                                                                                                                METHODS\n Metric                      Value      Note                                 Method                     Acc.    Dataset      Interpretability\n 5-Fold CV Accuracy          91.25%     Mean \u00b1 std over 5 folds              ResNet-50                  89%    CBIS-DDSM     None (black box)\n Test Set Accuracy           91.25%     Held-out 20% split                   (Deep Learning)\n Precision (macro)           90.70%     T   T P                              InceptionV3                87%    CBIS-DDSM     None (black box)\n                                           P+F P                             (Transfer)\n Recall (macro)              91.92%     T   T P\n                                           P+F N                             SVM + HOG +                78%       DDSM       Full (feature\n F1 Score (macro)            91.31%     Harmonic mean P & R                  Shape                                           weights)\n AUC-ROC                     90.58%     Area under ROC curve                 RF + GLCM                  90%     MIAS         Full (feature\n Single-image Confidence     91.33%     Predicted probability score          (prior)                                         importance)\n\nC. Single Image Interference                                                             APPLICATIONS AND LIMITATIONS\n\n The result of a complete single-image inference is shown                  A. Clinical Applications\nin Figure 6. The input image before preprocessing is also                           The proposed pipeline is suitable for deployment as\nvisualized along with the segmentation mask, feature values,                a second-reader tool in screening mammography p  -\nand the predicted panel where the prediction is MALIGNANT                   grams, particularly in resource-constrained settings (e.g., rural\nwith confidence score of 91.33%.                                            telemedicine, mobile units) where GPU-based deep learning\n                                                                            inference is impractical. The 15-feature vector maps directly\n                                                                            to established BI-RADS descriptors (shape, margin character,\n                                                                            texture), enabling radiologists to audit and contextualize each\n                                                                            automated decision. Permutation importance rankings provide\n                                                                            data-driven confirmation of which image features drive  l  -\nFig. 6. Single-image inference result \u2014 PREDICTION: MALIGNANT,              sification, thereby increasing interpretability and supporting\nCONFIDENCE: 91.33%. The panel displays the input image, segmentation        regulatory compliance.\nmask, and the 15 extracted DIP feature values.\n                                                                            B. Limitations\nD. Extracted Feature Values for Test Sample                                         \u2022    Results reflect the synthetic dataset (5,000 samples) when\n                                                                                         CBIS-DDSM is unavailable; real-data metrics may differ\n\n                                                  TABLE IV                               due to domain shift.\n                             EXTRACTED 15-FEATURE VECTOR FOR THE MALIGNANT TEST     \u2022    The 15-feature set omits calcification-specific descriptors\n                      SAMPLE (CONFIDENCE: 91.33%)                                        (e.g., granulometry, sparkle patterns), limiting  ppl   b l-\n                                                                                         ity to calcification-type lesions.\n Feature                       Value        Interpretation                          \u2022    Adaptive thresholding parameters (blockSize = 35, C =\n Area                        25,510.50      Large lesion region                          5) are tuned for 224\u00d7224 JPEG ROIs; other resolutions\n Perimeter                     989.55       Extensive boundary                           may require re-tuning.\n Circularity                   0.3274       Low \u2014 irregular shape                   \u2022    No data augmentation is applied during training; the\n Compactness                   3.0545       High \u2014 spiculated margin                     model may be sensitive to class imbalance in real-world\n Solidity                      0.7200       Non-convex boundary                          deployment.\n Boundary Roughness            3.0545       High roughness                                                 CONCLUSION\n Aspect Ratio                  1.3494       Slightly elongated                      A complete automated digital image processing pipeline\n Extent                        0.6986       Moderate fill ratio             was proposed and presented that allows automated  nh n  -\n Mean Intensity                128.09       Mid-range brightness            ment and breast cancer classification of mammography images\n Std Intensity                 62.58        High internal heterogeneity     on the CBIS-DDSM dataset. By combining the chain of mul  -\n Skewness                      0.1261       Slight positive skew            step pre-processing (bilateral filtering for noise reduction,\n GLCM Contrast                 4.0006       High local variation            double pass CLAHE, and morphological opening/closing) with\n GLCM Energy                   0.3180       Moderate uniformity             a set of 15 handcrafted feature descriptions the pipeline m  n-\n GLCM Homogeneity              0.8311       Moderate smoothness             tains a high degree of diagnostic transparency. The Random\n GLCM Correlation              0.9787       High spatial dependency         Forest classifier model yields a highly reliable confidence\n                                                                            score of 91.33 percent during single-image inference. As\n                                                                            opposed to the conventional \u201dblack-box\u201d approach to these",
+        "md": "\n\n# B. Classifier Performance Matrics\n\n# E. Comparison with Published Methods\n\n| CLASSIFICATION PERFORMANCE AND INFERENCE METRICS |        |                             |\n| :----------------------------------------------: | ------ | --------------------------- |\n|                      Metric                      | Value  | Note                        |\n|                5-Fold CV Accuracy                | 91.25% | Mean \u00b1 std over 5 folds     |\n|                 Test Set Accuracy                | 91.25% | Held-out 20% split          |\n|                 Precision (macro)                | 90.70% | TTP / (TP + FP)             |\n|                  Recall (macro)                  | 91.92% | TTP / (TP + FN)             |\n|                 F1 Score (macro)                 | 91.31% | Harmonic mean P & R         |\n|                      AUC-ROC                     | 90.58% | Area under ROC curve        |\n|              Single-image Confidence             | 91.33% | Predicted probability score |\n\n# C. Single Image Interference\n\nThe result of a complete single-image inference is shown in Figure 6. The input image before preprocessing is also visualized along with the segmentation mask, feature values, and the predicted panel where the prediction is MALIGNANT with confidence score of 91.33%.\n\nFig. 6. Single-image inference result \u2014 PREDICTION: MALIGNANT, CONFIDENCE: 91.33%. The panel displays the input image, segmentation mask, and the 15 extracted DIP feature values.\n\n# APPLICATIONS AND LIMITATIONS\n\n# A. Clinical Applications\n\nThe proposed pipeline is suitable for deployment as a second-reader tool in screening mammography programs, particularly in resource-constrained settings (e.g., rural telemedicine, mobile units) where GPU-based deep learning inference is impractical. The 15-feature vector maps directly to established BI-RADS descriptors (shape, margin character, texture), enabling radiologists to audit and contextualize each automated decision. Permutation importance rankings provide data-driven confirmation of which image features drive classification, thereby increasing interpretability and supporting regulatory compliance.\n\n# B. Limitations\n\n- Results reflect the synthetic dataset (5,000 samples) when CBIS-DDSM is unavailable; real-data metrics may differ due to domain shift.\n- The 15-feature set omits calcification-specific descriptors (e.g., granulometry, sparkle patterns), limiting applicability to calcification-type lesions.\n- Adaptive thresholding parameters (blockSize = 35, C = 5) are tuned for 224\u00d7224 JPEG ROIs; other resolutions may require re-tuning.\n- No data augmentation is applied during training; the model may be sensitive to class imbalance in real-world deployment.\n\n# CONCLUSION\n\nA complete automated digital image processing pipeline was proposed and presented that allows automated enhancement and breast cancer classification of mammography images on the CBIS-DDSM dataset. By combining the chain of multi-step pre-processing (bilateral filtering for noise reduction, double pass CLAHE, and morphological opening/closing) with a set of 15 handcrafted feature descriptions, the pipeline maintains a high degree of diagnostic transparency. The Random Forest classifier model yields a highly reliable confidence score of 91.33 percent during single-image inference. As opposed to the conventional \"black-box\" approach to these.\n\n# D. Extracted Feature Values for Test Sample\n\n| EXTRACTED 15-FEATURE VECTOR FOR THE MALIGNANT TEST SAMPLE (CONFIDENCE: 91.33%) |           |                             |\n| :----------------------------------------------------------------------------: | --------- | --------------------------- |\n|                                     Feature                                    | Value     | Interpretation              |\n|                                      Area                                      | 25,510.50 | Large lesion region         |\n|                                    Perimeter                                   | 989.55    | Extensive boundary          |\n|                                   Circularity                                  | 0.3274    | Low \u2014 irregular shape       |\n|                                   Compactness                                  | 3.0545    | High \u2014 spiculated margin    |\n|                                    Solidity                                    | 0.7200    | Non-convex boundary         |\n|                               Boundary Roughness                               | 3.0545    | High roughness              |\n|                                  Aspect Ratio                                  | 1.3494    | Slightly elongated          |\n|                                     Extent                                     | 0.6986    | Moderate fill ratio         |\n|                                 Mean Intensity                                 | 128.09    | Mid-range brightness        |\n|                                  Std Intensity                                 | 62.58     | High internal heterogeneity |\n|                                    Skewness                                    | 0.1261    | Slight positive skew        |\n|                                  GLCM Contrast                                 | 4.0006    | High local variation        |\n|                                   GLCM Energy                                  | 0.3180    | Moderate uniformity         |\n|                                GLCM Homogeneity                                | 0.8311    | Moderate smoothness         |\n|                                GLCM Correlation                                | 0.9787    | High spatial dependency     |\n\n",
+        "images": [
+          {
+            "name": "img_p3_1.png",
+            "height": 37.388,
+            "width": 150.637,
+            "x": 99.175,
+            "y": 330.555,
+            "original_width": 304,
+            "original_height": 75,
+            "rotation": 0
+          },
+          {
+            "name": "chart_p4_0.png",
+            "height": 141.095,
+            "width": 514.8689999999999,
+            "x": 48.566,
+            "y": 81.322,
+            "original_width": 1039,
+            "original_height": 285,
+            "rotation": 0
+          },
+          {
+            "name": "chart_p4_1.png",
+            "height": 245.21600000000012,
+            "width": 514.47,
+            "x": 48.566,
+            "y": 473.381,
+            "original_width": 1039,
+            "original_height": 495,
+            "rotation": 0
+          },
+          {
+            "name": "page_4.jpg",
+            "height": 792,
+            "width": 612,
+            "x": 0,
+            "y": 0,
+            "original_width": 1236,
+            "original_height": 1600,
+            "rotation": 0,
+            "type": "full_page_screenshot"
+          }
+        ],
+        "charts": [
+          {
+            "name": "chart_p4_0.png",
+            "height": 141.1,
+            "width": 514.87,
+            "x": 48.57,
+            "y": 81.32
+          },
+          {
+            "name": "chart_p4_1.png",
+            "height": 245.22,
+            "width": 514.47,
+            "x": 48.57,
+            "y": 473.38
+          }
+        ],
+        "items": [
+          {
+            "type": "heading",
+            "md": "# B. Classifier Performance Matrics",
+            "value": "B. Classifier Performance Matrics",
+            "lvl": 1,
+            "bBox": {
+              "x": 48.89,
+              "y": 52.11,
+              "w": 141.01,
+              "h": 8.86,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# E. Comparison with Published Methods",
+            "value": "E. Comparison with Published Methods",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.98,
+              "y": 52.11,
+              "w": 164.61,
+              "h": 8.84,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "table",
+            "md": "| CLASSIFICATION PERFORMANCE AND INFERENCE METRICS |        |                             |\n| :----------------------------------------------: | ------ | --------------------------- |\n|                      Metric                      | Value  | Note                        |\n|                5-Fold CV Accuracy                | 91.25% | Mean \u00b1 std over 5 folds     |\n|                 Test Set Accuracy                | 91.25% | Held-out 20% split          |\n|                 Precision (macro)                | 90.70% | TTP / (TP + FP)             |\n|                  Recall (macro)                  | 91.92% | TTP / (TP + FN)             |\n|                 F1 Score (macro)                 | 91.31% | Harmonic mean P & R         |\n|                      AUC-ROC                     | 90.58% | Area under ROC curve        |\n|              Single-image Confidence             | 91.33% | Predicted probability score |",
+            "rows": [
+              [
+                "CLASSIFICATION PERFORMANCE AND INFERENCE METRICS",
+                "",
+                ""
+              ],
+              [
+                "Metric",
+                "Value",
+                "Note"
+              ],
+              [
+                "5-Fold CV Accuracy",
+                "91.25%",
+                "Mean \u00b1 std over 5 folds"
+              ],
+              [
+                "Test Set Accuracy",
+                "91.25%",
+                "Held-out 20% split"
+              ],
+              [
+                "Precision (macro)",
+                "90.70%",
+                "TTP / (TP + FP)"
+              ],
+              [
+                "Recall (macro)",
+                "91.92%",
+                "TTP / (TP + FN)"
+              ],
+              [
+                "F1 Score (macro)",
+                "91.31%",
+                "Harmonic mean P & R"
+              ],
+              [
+                "AUC-ROC",
+                "90.58%",
+                "Area under ROC curve"
+              ],
+              [
+                "Single-image Confidence",
+                "91.33%",
+                "Predicted probability score"
+              ]
+            ],
+            "isPerfectTable": true,
+            "csv": "\"CLASSIFICATION PERFORMANCE AND INFERENCE METRICS\",\"\",\"\"\n\"Metric\",\"Value\",\"Note\"\n\"5-Fold CV Accuracy\",\"91.25%\",\"Mean \u00b1 std over 5 folds\"\n\"Test Set Accuracy\",\"91.25%\",\"Held-out 20% split\"\n\"Precision (macro)\",\"90.70%\",\"TTP / (TP + FP)\"\n\"Recall (macro)\",\"91.92%\",\"TTP / (TP + FN)\"\n\"F1 Score (macro)\",\"91.31%\",\"Harmonic mean P & R\"\n\"AUC-ROC\",\"90.58%\",\"Area under ROC curve\"\n\"Single-image Confidence\",\"91.33%\",\"Predicted probability score\"",
+            "bBox": {
+              "x": 48.89,
+              "y": 52.11,
+              "w": 514.16,
+              "h": 666.49,
+              "confidence": 0.7,
+              "label": "table"
+            },
+            "parseConcerns": [
+              {
+                "type": "multi_table_page",
+                "details": "2 tables on page"
+              }
+            ]
+          },
+          {
+            "type": "heading",
+            "md": "# C. Single Image Interference",
+            "value": "C. Single Image Interference",
+            "lvl": 1,
+            "bBox": {
+              "x": 48.96,
+              "y": 240.86,
+              "w": 119.01,
+              "h": 8.86,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "The result of a complete single-image inference is shown in Figure 6. The input image before preprocessing is also visualized along with the segmentation mask, feature values, and the predicted panel where the prediction is MALIGNANT with confidence score of 91.33%.",
+            "value": "The result of a complete single-image inference is shown in Figure 6. The input image before preprocessing is also visualized along with the segmentation mask, feature values, and the predicted panel where the prediction is MALIGNANT with confidence score of 91.33%.",
+            "bBox": {
+              "x": 48.96,
+              "y": 259.36,
+              "w": 251.06,
+              "h": 56.78,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "text",
+            "md": "Fig. 6. Single-image inference result \u2014 PREDICTION: MALIGNANT, CONFIDENCE: 91.33%. The panel displays the input image, segmentation mask, and the 15 extracted DIP feature values.",
+            "value": "Fig. 6. Single-image inference result \u2014 PREDICTION: MALIGNANT, CONFIDENCE: 91.33%. The panel displays the input image, segmentation mask, and the 15 extracted DIP feature values.",
+            "bBox": {
+              "x": 48.96,
+              "y": 380.42,
+              "w": 251.06,
+              "h": 25.11,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# APPLICATIONS AND LIMITATIONS",
+            "value": "APPLICATIONS AND LIMITATIONS",
+            "lvl": 1,
+            "bBox": {
+              "x": 352.05,
+              "y": 237.94,
+              "w": 170.91,
+              "h": 8.91,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# A. Clinical Applications",
+            "value": "A. Clinical Applications",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.48,
+              "y": 253.57,
+              "w": 98.53,
+              "h": 8.84,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "The proposed pipeline is suitable for deployment as a second-reader tool in screening mammography programs, particularly in resource-constrained settings (e.g., rural telemedicine, mobile units) where GPU-based deep learning inference is impractical. The 15-feature vector maps directly to established BI-RADS descriptors (shape, margin character, texture), enabling radiologists to audit and contextualize each automated decision. Permutation importance rankings provide data-driven confirmation of which image features drive classification, thereby increasing interpretability and supporting regulatory compliance.",
+            "value": "The proposed pipeline is suitable for deployment as a second-reader tool in screening mammography programs, particularly in resource-constrained settings (e.g., rural telemedicine, mobile units) where GPU-based deep learning inference is impractical. The 15-feature vector maps directly to established BI-RADS descriptors (shape, margin character, texture), enabling radiologists to audit and contextualize each automated decision. Permutation importance rankings provide data-driven confirmation of which image features drive classification, thereby increasing interpretability and supporting regulatory compliance.",
+            "bBox": {
+              "x": 311.98,
+              "y": 90.29,
+              "w": 251.06,
+              "h": 307.23,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# B. Limitations",
+            "value": "B. Limitations",
+            "lvl": 1,
+            "bBox": {
+              "x": 311.91,
+              "y": 408.2,
+              "w": 57.53,
+              "h": 8.59,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "- Results reflect the synthetic dataset (5,000 samples) when CBIS-DDSM is unavailable; real-data metrics may differ due to domain shift.\n- The 15-feature set omits calcification-specific descriptors (e.g., granulometry, sparkle patterns), limiting applicability to calcification-type lesions.\n- Adaptive thresholding parameters (blockSize = 35, C = 5) are tuned for 224\u00d7224 JPEG ROIs; other resolutions may require re-tuning.\n- No data augmentation is applied during training; the model may be sensitive to class imbalance in real-world deployment.",
+            "value": "- Results reflect the synthetic dataset (5,000 samples) when CBIS-DDSM is unavailable; real-data metrics may differ due to domain shift.\n- The 15-feature set omits calcification-specific descriptors (e.g., granulometry, sparkle patterns), limiting applicability to calcification-type lesions.\n- Adaptive thresholding parameters (blockSize = 35, C = 5) are tuned for 224\u00d7224 JPEG ROIs; other resolutions may require re-tuning.\n- No data augmentation is applied during training; the model may be sensitive to class imbalance in real-world deployment.",
+            "bBox": {
+              "x": 332,
+              "y": 423.35,
+              "w": 231.06,
+              "h": 140.52,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# CONCLUSION",
+            "value": "CONCLUSION",
+            "lvl": 1,
+            "bBox": {
+              "x": 403.17,
+              "y": 574.46,
+              "w": 68.68,
+              "h": 8.91,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "A complete automated digital image processing pipeline was proposed and presented that allows automated enhancement and breast cancer classification of mammography images on the CBIS-DDSM dataset. By combining the chain of multi-step pre-processing (bilateral filtering for noise reduction, double pass CLAHE, and morphological opening/closing) with a set of 15 handcrafted feature descriptions, the pipeline maintains a high degree of diagnostic transparency. The Random Forest classifier model yields a highly reliable confidence score of 91.33 percent during single-image inference. As opposed to the conventional \"black-box\" approach to these.",
+            "value": "A complete automated digital image processing pipeline was proposed and presented that allows automated enhancement and breast cancer classification of mammography images on the CBIS-DDSM dataset. By combining the chain of multi-step pre-processing (bilateral filtering for noise reduction, double pass CLAHE, and morphological opening/closing) with a set of 15 handcrafted feature descriptions, the pipeline maintains a high degree of diagnostic transparency. The Random Forest classifier model yields a highly reliable confidence score of 91.33 percent during single-image inference. As opposed to the conventional \"black-box\" approach to these.",
+            "bBox": {
+              "x": 55.34,
+              "y": 118.5,
+              "w": 507.7,
+              "h": 588.16,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# D. Extracted Feature Values for Test Sample",
+            "value": "D. Extracted Feature Values for Test Sample",
+            "lvl": 1,
+            "bBox": {
+              "x": 48.89,
+              "y": 421.7,
+              "w": 183.84,
+              "h": 8.86,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "table",
+            "md": "| EXTRACTED 15-FEATURE VECTOR FOR THE MALIGNANT TEST SAMPLE (CONFIDENCE: 91.33%) |           |                             |\n| :----------------------------------------------------------------------------: | --------- | --------------------------- |\n|                                     Feature                                    | Value     | Interpretation              |\n|                                      Area                                      | 25,510.50 | Large lesion region         |\n|                                    Perimeter                                   | 989.55    | Extensive boundary          |\n|                                   Circularity                                  | 0.3274    | Low \u2014 irregular shape       |\n|                                   Compactness                                  | 3.0545    | High \u2014 spiculated margin    |\n|                                    Solidity                                    | 0.7200    | Non-convex boundary         |\n|                               Boundary Roughness                               | 3.0545    | High roughness              |\n|                                  Aspect Ratio                                  | 1.3494    | Slightly elongated          |\n|                                     Extent                                     | 0.6986    | Moderate fill ratio         |\n|                                 Mean Intensity                                 | 128.09    | Mid-range brightness        |\n|                                  Std Intensity                                 | 62.58     | High internal heterogeneity |\n|                                    Skewness                                    | 0.1261    | Slight positive skew        |\n|                                  GLCM Contrast                                 | 4.0006    | High local variation        |\n|                                   GLCM Energy                                  | 0.3180    | Moderate uniformity         |\n|                                GLCM Homogeneity                                | 0.8311    | Moderate smoothness         |\n|                                GLCM Correlation                                | 0.9787    | High spatial dependency     |",
+            "rows": [
+              [
+                "EXTRACTED 15-FEATURE VECTOR FOR THE MALIGNANT TEST SAMPLE (CONFIDENCE: 91.33%)",
+                "",
+                ""
+              ],
+              [
+                "Feature",
+                "Value",
+                "Interpretation"
+              ],
+              [
+                "Area",
+                "25,510.50",
+                "Large lesion region"
+              ],
+              [
+                "Perimeter",
+                "989.55",
+                "Extensive boundary"
+              ],
+              [
+                "Circularity",
+                "0.3274",
+                "Low \u2014 irregular shape"
+              ],
+              [
+                "Compactness",
+                "3.0545",
+                "High \u2014 spiculated margin"
+              ],
+              [
+                "Solidity",
+                "0.7200",
+                "Non-convex boundary"
+              ],
+              [
+                "Boundary Roughness",
+                "3.0545",
+                "High roughness"
+              ],
+              [
+                "Aspect Ratio",
+                "1.3494",
+                "Slightly elongated"
+              ],
+              [
+                "Extent",
+                "0.6986",
+                "Moderate fill ratio"
+              ],
+              [
+                "Mean Intensity",
+                "128.09",
+                "Mid-range brightness"
+              ],
+              [
+                "Std Intensity",
+                "62.58",
+                "High internal heterogeneity"
+              ],
+              [
+                "Skewness",
+                "0.1261",
+                "Slight positive skew"
+              ],
+              [
+                "GLCM Contrast",
+                "4.0006",
+                "High local variation"
+              ],
+              [
+                "GLCM Energy",
+                "0.3180",
+                "Moderate uniformity"
+              ],
+              [
+                "GLCM Homogeneity",
+                "0.8311",
+                "Moderate smoothness"
+              ],
+              [
+                "GLCM Correlation",
+                "0.9787",
+                "High spatial dependency"
+              ]
+            ],
+            "isPerfectTable": true,
+            "csv": "\"EXTRACTED 15-FEATURE VECTOR FOR THE MALIGNANT TEST SAMPLE (CONFIDENCE: 91.33%)\",\"\",\"\"\n\"Feature\",\"Value\",\"Interpretation\"\n\"Area\",\"25,510.50\",\"Large lesion region\"\n\"Perimeter\",\"989.55\",\"Extensive boundary\"\n\"Circularity\",\"0.3274\",\"Low \u2014 irregular shape\"\n\"Compactness\",\"3.0545\",\"High \u2014 spiculated margin\"\n\"Solidity\",\"0.7200\",\"Non-convex boundary\"\n\"Boundary Roughness\",\"3.0545\",\"High roughness\"\n\"Aspect Ratio\",\"1.3494\",\"Slightly elongated\"\n\"Extent\",\"0.6986\",\"Moderate fill ratio\"\n\"Mean Intensity\",\"128.09\",\"Mid-range brightness\"\n\"Std Intensity\",\"62.58\",\"High internal heterogeneity\"\n\"Skewness\",\"0.1261\",\"Slight positive skew\"\n\"GLCM Contrast\",\"4.0006\",\"High local variation\"\n\"GLCM Energy\",\"0.3180\",\"Moderate uniformity\"\n\"GLCM Homogeneity\",\"0.8311\",\"Moderate smoothness\"\n\"GLCM Correlation\",\"0.9787\",\"High spatial dependency\"",
+            "bBox": {
+              "x": 48.89,
+              "y": 52.11,
+              "w": 514.16,
+              "h": 666.49,
+              "confidence": 0.7,
+              "label": "table"
+            },
+            "parseConcerns": [
+              {
+                "type": "multi_table_page",
+                "details": "2 tables on page"
+              }
+            ]
+          }
+        ],
+        "status": "OK",
+        "originalOrientationAngle": 0,
+        "links": [],
+        "width": 612,
+        "height": 792,
+        "triggeredAutoMode": false,
+        "parsingMode": "accurate",
+        "structuredData": null,
+        "noStructuredContent": false,
+        "noTextContent": false,
+        "pageHeaderMarkdown": "",
+        "pageFooterMarkdown": "",
+        "printedPageNumber": "",
+        "slideSpeakerNotes": null,
+        "slideSectionName": null,
+        "confidence": 0.898,
+        "costOptimized": false
+      },
+      {
+        "page": 5,
+        "text": "problems, the workflow is readily inspectable (or auditable) via\nthe various intermediary outputs presented during processing,\nthereby allowing for integration into clinical workflow for\ndecision support purposes. Future work will concentrate on\nadding calcification specific feature descriptors, developing a\nhybrid of classical and deep-learn based networks, and  p-\nplying Bayesian hyper-parameter optimization to the existing\nmodels. In addition, a DICOM-native REST API system will\nbe designed to allow the models to be called, and clinical\nevaluation is sought.\n\n                           REFERENCES\n\n [1]  S. M. Lee et al., \u201cA Curated Mammography Data Set for Use in\n      Computer-Aided Detection and Diagnosis Research,\u201d GigaScience, vol.\n      6, no. 11, 2017.\n [2]  M. Heath et al., \u201cThe Digital Database for Screening Mammography,\u201d\n      Proc. 5th Int. Workshop Digital Mammography, 2000, pp. 212\u2013218.\n [3]  S. Pizer et al., \u201cAdaptive histogram equalization and its variations,\u201d\n      Comput. Vision Graph. Image Process., vol. 39, no. 3, pp. 355\u2013368,\n      1987.\n [4]  A. M. Reza, \u201cRealization of the Contrast Limited Adaptive Histogram\n      Equalization (CLAHE) for real-time image enhancement,\u201d J. VLSI\n      Signal Process., vol. 38, no. 1, pp. 35\u201344, 2004.\n [5]  N. Otsu, \u201cA Threshold Selection Method from Gray-Level Histograms,\u201d\n      IEEE Trans. Syst. Man Cybern., vol. 9, no. 1, pp. 62\u201366, 1979.\n [6]  R. M. Haralick, K. Shanmugam, and I. Dinstein, \u201cTextural features for\n      image classification,\u201d IEEE Trans. Syst. Man Cybern., vol. SMC-3, no.\n      6, pp. 610\u2013621, 1973.\n [7]  L. Breiman, \u201cRandom Forests,\u201d Machine Learning, vol. 45, no. 1, pp.\n      5\u201332, 2001.\n [8]  A. Altmann et al., \u201cPermutation importance: a corrected feature  mp  -\n      tance measure,\u201d Bioinformatics, vol. 26, no. 10, pp. 1340\u20131347, 2010.\n [9]  C. Tomasi and R. Manduchi, \u201cBilateral filtering for gray and color\n      images,\u201d Proc. IEEE ICCV, 1998, pp. 839\u2013846.\n[10]  F. Pedregosa et al., \u201cScikit-learn: Machine learning in Python,\u201d J. Mach.\n      Learn. Res., vol. 12, pp. 2825\u20132830, 2011.\n[11]  R. C. Gonzalez and R. E. Woods, Digital Image Processing, 4th ed.\n      Pearson, 2018.\n[12]  K. He, X. Zhang, S. Ren, and J. Sun, \u201cDeep residual learning for image\n      recognition,\u201d Proc. IEEE CVPR, 2016, pp. 770\u2013778.",
+        "md": "problems, the workflow is readily inspectable (or auditable) via the various intermediary outputs presented during processing, thereby allowing for integration into clinical workflow for decision support purposes. Future work will concentrate on adding calcification specific feature descriptors, developing a hybrid of classical and deep-learn based networks, and applying Bayesian hyper-parameter optimization to the existing models. In addition, a DICOM-native REST API system will be designed to allow the models to be called, and clinical evaluation is sought.\n\n# REFERENCES\n\n1. S. M. Lee et al., \u201cA Curated Mammography Data Set for Use in Computer-Aided Detection and Diagnosis Research,\u201d GigaScience, vol. 6, no. 11, 2017.\n2. M. Heath et al., \u201cThe Digital Database for Screening Mammography,\u201d Proc. 5th Int. Workshop Digital Mammography, 2000, pp. 212\u2013218.\n3. S. Pizer et al., \u201cAdaptive histogram equalization and its variations,\u201d Comput. Vision Graph. Image Process., vol. 39, no. 3, pp. 355\u2013368, 1987.\n4. A. M. Reza, \u201cRealization of the Contrast Limited Adaptive Histogram Equalization (CLAHE) for real-time image enhancement,\u201d J. VLSI Signal Process., vol. 38, no. 1, pp. 35\u201344, 2004.\n5. N. Otsu, \u201cA Threshold Selection Method from Gray-Level Histograms,\u201d IEEE Trans. Syst. Man Cybern., vol. 9, no. 1, pp. 62\u201366, 1979.\n6. R. M. Haralick, K. Shanmugam, and I. Dinstein, \u201cTextural features for image classification,\u201d IEEE Trans. Syst. Man Cybern., vol. SMC-3, no. 6, pp. 610\u2013621, 1973.\n7. L. Breiman, \u201cRandom Forests,\u201d Machine Learning, vol. 45, no. 1, pp. 5\u201332, 2001.\n8. A. Altmann et al., \u201cPermutation importance: a corrected feature importance measure,\u201d Bioinformatics, vol. 26, no. 10, pp. 1340\u20131347, 2010.\n9. C. Tomasi and R. Manduchi, \u201cBilateral filtering for gray and color images,\u201d Proc. IEEE ICCV, 1998, pp. 839\u2013846.\n10. F. Pedregosa et al., \u201cScikit-learn: Machine learning in Python,\u201d J. Mach. Learn. Res., vol. 12, pp. 2825\u20132830, 2011.\n11. R. C. Gonzalez and R. E. Woods, Digital Image Processing, 4th ed. Pearson, 2018.\n12. K. He, X. Zhang, S. Ren, and J. Sun, \u201cDeep residual learning for image recognition,\u201d Proc. IEEE CVPR, 2016, pp. 770\u2013778.",
+        "images": [
+          {
+            "name": "page_5.jpg",
+            "height": 792,
+            "width": 612,
+            "x": 0,
+            "y": 0,
+            "original_width": 1236,
+            "original_height": 1600,
+            "rotation": 0,
+            "type": "full_page_screenshot"
+          }
+        ],
+        "charts": [],
+        "items": [
+          {
+            "type": "text",
+            "md": "problems, the workflow is readily inspectable (or auditable) via the various intermediary outputs presented during processing, thereby allowing for integration into clinical workflow for decision support purposes. Future work will concentrate on adding calcification specific feature descriptors, developing a hybrid of classical and deep-learn based networks, and applying Bayesian hyper-parameter optimization to the existing models. In addition, a DICOM-native REST API system will be designed to allow the models to be called, and clinical evaluation is sought.",
+            "value": "problems, the workflow is readily inspectable (or auditable) via the various intermediary outputs presented during processing, thereby allowing for integration into clinical workflow for decision support purposes. Future work will concentrate on adding calcification specific feature descriptors, developing a hybrid of classical and deep-learn based networks, and applying Bayesian hyper-parameter optimization to the existing models. In addition, a DICOM-native REST API system will be designed to allow the models to be called, and clinical evaluation is sought.",
+            "bBox": {
+              "x": 48.96,
+              "y": 52.11,
+              "w": 251.08,
+              "h": 116.56,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          },
+          {
+            "type": "heading",
+            "md": "# REFERENCES",
+            "value": "REFERENCES",
+            "lvl": 1,
+            "bBox": {
+              "x": 146.6,
+              "y": 178.43,
+              "w": 55.8,
+              "h": 8.91,
+              "confidence": 0.7,
+              "label": "heading"
+            }
+          },
+          {
+            "type": "text",
+            "md": "1. S. M. Lee et al., \u201cA Curated Mammography Data Set for Use in Computer-Aided Detection and Diagnosis Research,\u201d GigaScience, vol. 6, no. 11, 2017.\n2. M. Heath et al., \u201cThe Digital Database for Screening Mammography,\u201d Proc. 5th Int. Workshop Digital Mammography, 2000, pp. 212\u2013218.\n3. S. Pizer et al., \u201cAdaptive histogram equalization and its variations,\u201d Comput. Vision Graph. Image Process., vol. 39, no. 3, pp. 355\u2013368, 1987.\n4. A. M. Reza, \u201cRealization of the Contrast Limited Adaptive Histogram Equalization (CLAHE) for real-time image enhancement,\u201d J. VLSI Signal Process., vol. 38, no. 1, pp. 35\u201344, 2004.\n5. N. Otsu, \u201cA Threshold Selection Method from Gray-Level Histograms,\u201d IEEE Trans. Syst. Man Cybern., vol. 9, no. 1, pp. 62\u201366, 1979.\n6. R. M. Haralick, K. Shanmugam, and I. Dinstein, \u201cTextural features for image classification,\u201d IEEE Trans. Syst. Man Cybern., vol. SMC-3, no. 6, pp. 610\u2013621, 1973.\n7. L. Breiman, \u201cRandom Forests,\u201d Machine Learning, vol. 45, no. 1, pp. 5\u201332, 2001.\n8. A. Altmann et al., \u201cPermutation importance: a corrected feature importance measure,\u201d Bioinformatics, vol. 26, no. 10, pp. 1340\u20131347, 2010.\n9. C. Tomasi and R. Manduchi, \u201cBilateral filtering for gray and color images,\u201d Proc. IEEE ICCV, 1998, pp. 839\u2013846.\n10. F. Pedregosa et al., \u201cScikit-learn: Machine learning in Python,\u201d J. Mach. Learn. Res., vol. 12, pp. 2825\u20132830, 2011.\n11. R. C. Gonzalez and R. E. Woods, Digital Image Processing, 4th ed. Pearson, 2018.\n12. K. He, X. Zhang, S. Ren, and J. Sun, \u201cDeep residual learning for image recognition,\u201d Proc. IEEE CVPR, 2016, pp. 770\u2013778.",
+            "value": "1. S. M. Lee et al., \u201cA Curated Mammography Data Set for Use in Computer-Aided Detection and Diagnosis Research,\u201d GigaScience, vol. 6, no. 11, 2017.\n2. M. Heath et al., \u201cThe Digital Database for Screening Mammography,\u201d Proc. 5th Int. Workshop Digital Mammography, 2000, pp. 212\u2013218.\n3. S. Pizer et al., \u201cAdaptive histogram equalization and its variations,\u201d Comput. Vision Graph. Image Process., vol. 39, no. 3, pp. 355\u2013368, 1987.\n4. A. M. Reza, \u201cRealization of the Contrast Limited Adaptive Histogram Equalization (CLAHE) for real-time image enhancement,\u201d J. VLSI Signal Process., vol. 38, no. 1, pp. 35\u201344, 2004.\n5. N. Otsu, \u201cA Threshold Selection Method from Gray-Level Histograms,\u201d IEEE Trans. Syst. Man Cybern., vol. 9, no. 1, pp. 62\u201366, 1979.\n6. R. M. Haralick, K. Shanmugam, and I. Dinstein, \u201cTextural features for image classification,\u201d IEEE Trans. Syst. Man Cybern., vol. SMC-3, no. 6, pp. 610\u2013621, 1973.\n7. L. Breiman, \u201cRandom Forests,\u201d Machine Learning, vol. 45, no. 1, pp. 5\u201332, 2001.\n8. A. Altmann et al., \u201cPermutation importance: a corrected feature importance measure,\u201d Bioinformatics, vol. 26, no. 10, pp. 1340\u20131347, 2010.\n9. C. Tomasi and R. Manduchi, \u201cBilateral filtering for gray and color images,\u201d Proc. IEEE ICCV, 1998, pp. 839\u2013846.\n10. F. Pedregosa et al., \u201cScikit-learn: Machine learning in Python,\u201d J. Mach. Learn. Res., vol. 12, pp. 2825\u20132830, 2011.\n11. R. C. Gonzalez and R. E. Woods, Digital Image Processing, 4th ed. Pearson, 2018.\n12. K. He, X. Zhang, S. Ren, and J. Sun, \u201cDeep residual learning for image recognition,\u201d Proc. IEEE CVPR, 2016, pp. 770\u2013778.",
+            "bBox": {
+              "x": 67.22,
+              "y": 194.54,
+              "w": 232.82,
+              "h": 249.27,
+              "confidence": 0.7,
+              "label": "text"
+            }
+          }
+        ],
+        "status": "OK",
+        "originalOrientationAngle": 0,
+        "links": [],
+        "width": 612,
+        "height": 792,
+        "triggeredAutoMode": false,
+        "parsingMode": "accurate",
+        "structuredData": null,
+        "noStructuredContent": false,
+        "noTextContent": false,
+        "pageHeaderMarkdown": "",
+        "pageFooterMarkdown": "",
+        "printedPageNumber": "",
+        "slideSpeakerNotes": null,
+        "slideSectionName": null,
+        "confidence": 0.993,
+        "costOptimized": false
+      }
+    ],
+    "job_metadata": {
+      "credits_used": 0,
+      "job_credits_usage": 0,
+      "job_pages": 5,
+      "job_auto_mode_triggered_pages": 0,
+      "job_is_cache_hit": false
+    },
+    "job_id": "0ada96e7-4238-428c-9c0c-062830d9f561",
+    "file_path": "data/input_pdfs\\IEEE_Conference_Template (2) (1).pdf"
+  }
+]

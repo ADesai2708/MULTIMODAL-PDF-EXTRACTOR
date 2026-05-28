@@ -7,8 +7,8 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str
     
     # Paths with fallback defaults
-    INPUT_DIR: str = "backend/data/input_pdfs"
-    OUTPUT_DIR: str = "backend/data/extracted_images"
+    INPUT_DIR: str = "data/input_pdfs"
+    OUTPUT_DIR: str = "data/extracted_images"
 
     # Match system to look for .env file in the root
     model_config = SettingsConfigDict(
