@@ -1,111 +1,109 @@
-from app.vector_store import init_vector_index
-import google.generativeai as genai
+
+from sentence_transformers import SentenceTransformer
+from qdrant_client import QdrantClient
+
 from app.config import settings
+import os
 
-genai.configure(
-    api_key=settings.GEMINI_API_KEY
+
+embedding_model = SentenceTransformer(
+    "all-MiniLM-L6-v2"
 )
 
-model = genai.GenerativeModel(
-    "gemini-1.5-flash-8b"
-)
 
-def execute_multimodal_query(query_str: str):
-    """
-    Search Qdrant, retrieve context,
-    then send retrieved text to Gemini manually.
-    """
+def execute_multimodal_query(
+    query_str: str
+):
 
     print(f"\n🔍 Searching: {query_str}")
 
-    index = init_vector_index()
-
-    retriever = index.as_retriever(
-        similarity_top_k=3
+    db_path = os.path.join(
+        os.path.dirname(__file__),
+        "../data/qdrant_local"
     )
 
-    source_nodes = retriever.retrieve(
+    client = QdrantClient(
+        path=db_path
+    )
+
+    collection_name = (
+        "multimodal_documents"
+    )
+
+    query_vector = embedding_model.encode(
         query_str
+    ).tolist()
+
+    results = client.search(
+
+        collection_name=collection_name,
+
+        query_vector=(
+            "text",
+            query_vector
+        ),
+
+        limit=3
     )
 
-    supporting_images=[]
+    context_blocks = []
 
-    retrieved_context=[]
+    referenced_images = []
 
-    for node in source_nodes:
+    for result in results:
 
-        metadata=node.node.metadata
+        payload = result.payload
 
-        retrieved_context.append(
-            node.node.text
+        context_blocks.append(
+
+            payload.get(
+                "text",
+                ""
+            )
         )
 
-        if metadata.get(
+        if payload.get(
             "type"
-        )=="figure_diagram_description":
+        ) == "figure_diagram_description":
 
-            supporting_images.append(
-                {
-                    "name":
-                    metadata.get(
-                        "image_name"
-                    ),
+            referenced_images.append({
 
-                    "path":
-                    metadata.get(
-                        "image_local_path"
-                    )
-                }
-            )
+                "name":
+                payload.get(
+                    "image_name"
+                ),
 
-    context="\n".join(
-        retrieved_context
-    )
+                "path":
+                payload.get(
+                    "image_local_path"
+                )
+            })
 
-    prompt=f"""
-    Use only the context below
-    to answer the question.
+    final_answer = (
+    "This document appears to discuss:\n\n"
+    + "\n".join(context_blocks[:3])
+)
 
-    Context:
-    {context}
+    prompt = f"""
+You are a helpful research assistant.
 
-    Question:
-    {query_str}
-    """
+Answer the user's question using ONLY the context below.
 
-    response=model.generate_content(
-        prompt
-    )
+QUESTION:
+{query_str}
 
+CONTEXT:
+{final_answer}
+"""
+
+    # Gemini Vision / generative AI call removed.
+    # Return the concatenated context directly as the answer.
     return {
 
         "answer":
-        response.text,
+        final_answer,
 
         "referenced_images":
-        supporting_images
+        referenced_images
     }
 
-
-if __name__=="__main__":
-
-    print("🤖 RAG ONLINE")
-
-    while True:
-
-        q=input(
-            "Question: "
-        )
-
-        if q=="exit":
-            break
-
-        result=execute_multimodal_query(q)
-
-        print(
-            "\nANSWER:"
-        )
-
-        print(
-            result["answer"]
-        )

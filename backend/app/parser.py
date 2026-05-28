@@ -1,110 +1,148 @@
+
 import os
 import glob
-import json
 import fitz
 
-from llama_parse import LlamaParse
 from app.config import settings
 
 
-def init_parser() -> LlamaParse:
+def extract_text_from_pdf(pdf_path: str):
+
     """
-    Initialize LlamaParse with multimodal support.
+    Extract clean text locally using PyMuPDF.
     """
 
-    return LlamaParse(
+    document = fitz.open(pdf_path)
 
-        api_key=settings.LLAMA_CLOUD_API_KEY,
+    full_text = ""
 
-        result_type="markdown",
+    print("\n📄 Extracting document text...")
 
-        extract_charts=True,
+    for page_num in range(len(document)):
 
-        verbose=True
-    )
+        page = document.load_page(page_num)
+
+        text = page.get_text()
+
+        full_text += text + "\n"
+
+        print(
+            f"✅ Extracted text from page {page_num + 1}"
+        )
+
+    return full_text
 
 
 def extract_images_local(
     pdf_path,
     output_dir
 ):
+
     """
-    Fallback local image extraction using PyMuPDF.
+    Extract images locally using PyMuPDF.
     """
 
-    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(
+        output_dir,
+        exist_ok=True
+    )
 
     doc = fitz.open(pdf_path)
 
     saved_images = []
 
-    print("\n🖼️ Running fallback image extraction...")
+    print(
+        "\n🖼️ Extracting images locally..."
+    )
 
     for page_num in range(len(doc)):
 
         page = doc[page_num]
 
-        images = page.get_images(full=True)
+        images = page.get_images(
+            full=True
+        )
 
         print(
-            f"📄 Page {page_num+1}: "
+            f"📄 Page {page_num + 1}: "
             f"{len(images)} image(s)"
         )
 
         for idx, img in enumerate(images):
 
-            xref = img[0]
+            try:
 
-            base_image = doc.extract_image(xref)
+                xref = img[0]
 
-            image_bytes = base_image["image"]
+                base_image = doc.extract_image(
+                    xref
+                )
 
-            image_ext = base_image["ext"]
+                image_bytes = base_image["image"]
 
-            filename = (
-                f"page_{page_num+1}_img_{idx+1}.{image_ext}"
-            )
+                image_ext = base_image["ext"]
 
-            image_path = os.path.join(
-                output_dir,
-                filename
-            )
+                filename = (
+                    f"page_{page_num + 1}_img_{idx + 1}.{image_ext}"
+                )
 
-            with open(image_path, "wb") as f:
-                f.write(image_bytes)
+                image_path = os.path.join(
+                    output_dir,
+                    filename
+                )
 
-            saved_images.append({
+                with open(
+                    image_path,
+                    "wb"
+                ) as f:
 
-                "image_name": filename,
+                    f.write(image_bytes)
 
-                "image_path": image_path
-            })
+                saved_images.append({
 
-            print(
-                f"✅ Saved: {filename}"
-            )
+                    "image_name": filename,
+
+                    "image_path": image_path
+                })
+
+                print(
+                    f"✅ Saved: {filename}"
+                )
+
+            except Exception as e:
+
+                print(
+                    f"❌ Failed extracting image: {e}"
+                )
 
     return saved_images
 
 
-def parse_pdf_document(pdf_path: str):
+def parse_pdf_document(
+    pdf_path: str
+):
 
     """
-    Parse PDF into markdown + extracted images.
+    Fully local PDF parser:
+    - Text extraction
+    - Image extraction
     """
 
     if not os.path.exists(pdf_path):
 
         raise FileNotFoundError(
-            f"Target PDF file not found at: {pdf_path}"
+
+            f"PDF not found: {pdf_path}"
         )
 
+    print("\n================================================")
+
     print(
-        f"\n🚀 Ingesting: "
+        f"🚀 Ingesting: "
         f"{os.path.basename(pdf_path)}"
     )
 
-    parser = init_parser()
+    print("================================================")
 
     images_output_dir = settings.OUTPUT_DIR
 
@@ -113,98 +151,24 @@ def parse_pdf_document(pdf_path: str):
         exist_ok=True
     )
 
-    print(
-        "\n⏳ Parsing layout + visuals..."
-    )
+    # -----------------------------
+    # TEXT EXTRACTION
+    # -----------------------------
 
-    json_results = parser.get_json_result(
+    full_text = extract_text_from_pdf(
         pdf_path
     )
 
-    print(
-        "\n⏳ Rendering markdown..."
+    # -----------------------------
+    # IMAGE EXTRACTION
+    # -----------------------------
+
+    extracted_images = extract_images_local(
+
+        pdf_path,
+
+        images_output_dir
     )
-
-    markdown_results = parser.load_data(
-        pdf_path
-    )
-
-    full_markdown_text = "\n\n".join(
-        [
-            doc.text
-            for doc in markdown_results
-        ]
-    )
-
-    # Save raw debug JSON
-    try:
-
-        with open(
-            "debug_llamaparse.json",
-            "w",
-            encoding="utf-8"
-        ) as f:
-
-            json.dump(
-                json_results,
-                f,
-                indent=2
-            )
-
-        print(
-            "\n✅ Saved debug JSON"
-        )
-
-    except Exception as e:
-
-        print(
-            f"\n⚠️ Failed saving debug JSON: {e}"
-        )
-
-    # Try LlamaParse image extraction
-    try:
-
-        print(
-            "\n🖼️ Extracting images via LlamaParse..."
-        )
-
-        images_downloaded = parser.get_images(
-
-            json_results,
-
-            download_path=images_output_dir
-        )
-
-        print(
-            f"✅ LlamaParse extracted "
-            f"{len(images_downloaded)} image(s)"
-        )
-
-    except Exception as e:
-
-        print(
-            f"\n❌ LlamaParse image extraction failed: {e}"
-        )
-
-        images_downloaded = []
-
-    # Fallback extraction
-    if not images_downloaded:
-
-        print(
-            "\n⚠️ No images detected via LlamaParse"
-        )
-
-        print(
-            "🔄 Switching to PyMuPDF fallback..."
-        )
-
-        images_downloaded = extract_images_local(
-
-            pdf_path,
-
-            images_output_dir
-        )
 
     print("\n================================================")
 
@@ -213,30 +177,27 @@ def parse_pdf_document(pdf_path: str):
     print("================================================")
 
     print(
-        f"📄 Parsed sections: "
-        f"{len(markdown_results)}"
+        f"📄 Text Length: "
+        f"{len(full_text)} characters"
     )
 
     print(
-        f"🖼️ Extracted images: "
-        f"{len(images_downloaded)}"
+        f"🖼️ Extracted Images: "
+        f"{len(extracted_images)}"
     )
 
     print(
-        f"📂 Output directory: "
+        f"📂 Output Folder: "
         f"{images_output_dir}"
     )
 
     return {
 
-        "markdown_text":
-        full_markdown_text,
+        "markdown_text": full_text,
 
-        "raw_chunks":
-        markdown_results,
+        "raw_chunks": [],
 
-        "extracted_images":
-        images_downloaded
+        "extracted_images": extracted_images
     }
 
 
@@ -249,7 +210,9 @@ if __name__ == "__main__":
     pdf_files = glob.glob(
 
         os.path.join(
+
             settings.INPUT_DIR,
+
             "*.pdf"
         )
     )
@@ -257,8 +220,8 @@ if __name__ == "__main__":
     if not pdf_files:
 
         print(
-            f"\n⚠️ No PDFs found inside "
-            f"'{settings.INPUT_DIR}'"
+            f"\n⚠️ No PDFs found in: "
+            f"{settings.INPUT_DIR}"
         )
 
     else:
@@ -268,19 +231,20 @@ if __name__ == "__main__":
         try:
 
             results = parse_pdf_document(
+
                 sample_target
             )
 
-            print(
-                "\n📘 Markdown Preview:\n"
-            )
+            print("\n📘 TEXT PREVIEW:\n")
 
             print("-" * 60)
 
             print(
+
                 results[
                     "markdown_text"
-                ][:1000]
+                ][:1500]
+
             )
 
             print("\n...[truncated]...")
@@ -292,3 +256,4 @@ if __name__ == "__main__":
             print(
                 f"\n❌ Parsing failed: {e}"
             )
+

@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # API Keys validated upon initialization
     LLAMA_CLOUD_API_KEY: str
-    GEMINI_API_KEY: str
+  
     
     # Paths with fallback defaults
     INPUT_DIR: str = "data/input_pdfs"

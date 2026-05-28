@@ -3,8 +3,7 @@ import glob
 import qdrant_client
 from app.config import settings
 from app.parser import parse_pdf_document
-from app.vision_service import analyze_extracted_image
-
+from app.vision_analyzer import generate_image_description
 def run_multimodal_ingestion_pipeline(pdf_path: str):
     """
     Orchestrates the entire ingestion workflow:
@@ -23,43 +22,61 @@ def run_multimodal_ingestion_pipeline(pdf_path: str):
     markdown_text = parsing_results["markdown_text"]
     extracted_images = parsing_results["extracted_images"]
     
-    # Step 2: Loop through every extracted image and run it through the Vision Engine
-    image_descriptions = []
+    # Step 2: Loop through every extracted image and generate BLIP captions
+    visual_elements = []
     
     if extracted_images:
-        print(f"\n🔄 Found {len(extracted_images)} extracted visual assets. Commencing vision indexing...")
+        print(f"\n🔄 Found {len(extracted_images)} extracted visual assets. Commencing BLIP captioning...")
         for img_info in extracted_images:
             # LlamaParse returns image paths or metadata structures depending on version
-            # We'll pull the path out directly from the extraction storage directory
-            img_path = img_info.get("path") if isinstance(img_info, dict) else img_info
-            
-            if img_path and os.path.exists(img_path):
-                # Analyze the diagram using our Step 3 vision module
-                description = analyze_extracted_image(img_path)
-                
-                image_descriptions.append({
-                    "image_name": os.path.basename(img_path),
-                    "image_path": img_path,
-                    "description": description
-                })
+            image_path = (
+                os.path.abspath(img_info.get("image_path"))
+                if isinstance(img_info, dict)
+                else os.path.abspath(img_info)
+            )
+
+            image_name = (
+                img_info.get("image_name")
+                if isinstance(img_info, dict)
+                else os.path.basename(image_path)
+            )
+
+            if image_path and os.path.exists(image_path):
+                print(f"👁️ Analyzing image: {image_name}")
+                try:
+                    description = generate_image_description(image_path)
+                    print("✅ Caption generated")
+
+                    visual_elements.append({
+                        "image_name": image_name,
+                        "image_path": image_path,
+                        "description": description
+                    })
+                except Exception as e:
+                    print(f"⚠️ Failed to generate caption for {image_name}: {e}")
+                    visual_elements.append({
+                        "image_name": image_name,
+                        "image_path": image_path,
+                        "description": f"[Error generating caption: {e}]"
+                    })
             else:
                 print(f"⚠️ Could not resolve valid path for image asset: {img_info}")
     else:
         print("\nℹ️ No visual assets or diagrams detected in this specific document layout.")
 
-    # Step 3: Combine structural layout text with vision descriptions into a unified payload
+    # Step 3: Combine structural layout text with BLIP descriptions into a unified payload
     print("\nFusing text elements and visual descriptions...")
     
     final_payload = {
         "source_document": os.path.basename(pdf_path),
         "document_text_content": markdown_text,
-        "visual_elements": image_descriptions
+        "visual_elements": visual_elements
     }
     
     print("\n" + "=" * 60)
     print("🏁 PIPELINE PROCESSING COMPLETE!")
     print(f"   • Compiled Document Text: {len(markdown_text)} characters.")
-    print(f"   • Contextualized Images: {len(image_descriptions)} elements described.")
+    print(f"   • Contextualized Images: {len(visual_elements)} elements described.")
     print("=" * 60)
     
     return final_payload
