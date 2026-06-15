@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import os
+from fastapi import UploadFile, File
+import shutil
 
 from app.query_engine import execute_multimodal_query
 from app.pipeline import run_multimodal_ingestion_pipeline
@@ -31,13 +33,39 @@ class IngestRequest(BaseModel):
     pdf_path: str
 
 @app.post("/ingest")
-async def ingest_file(payload: IngestRequest):
+async def ingest_file(file: UploadFile = File(...)):
     try:
-        processed_data = run_multimodal_ingestion_pipeline(payload.pdf_path)
-        index_multimodal_payload(processed_data)
-        return {"status": "success", "message": "Successfully indexed document structure."}
+
+        upload_dir = "data/input_pdfs"
+        os.makedirs(upload_dir, exist_ok=True)
+
+        pdf_path = os.path.join(
+            upload_dir,
+            file.filename
+        )
+
+        with open(pdf_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        processed_data = run_multimodal_ingestion_pipeline(
+            pdf_path
+        )
+
+        index_multimodal_payload(
+            processed_data
+        )
+
+        return {
+            "status": "success",
+            "filename": file.filename
+        }
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 
 @app.post("/query")
 async def query_rag(payload: QueryRequest):
@@ -58,6 +86,20 @@ async def query_rag(payload: QueryRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/documents")
+async def get_documents():
+
+    input_dir = "data/input_pdfs"
+
+    documents = [
+        file
+        for file in os.listdir(input_dir)
+        if file.endswith(".pdf")
+    ]
+
+    return documents
+
 
 if __name__ == "__main__":
     import uvicorn
